@@ -55,7 +55,7 @@ button {
   z-index: 1;
   height: 100svh;
   min-height: 0;
-  width: min(100%, 1100px);
+  width: min(100%, 600px);
   margin: 0 auto;
   padding: max(14px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
   display: grid;
@@ -123,7 +123,7 @@ button {
 }
 
 .tap-zone {
-  min-height: 42vh;
+  min-height: 32vh;
   display: grid;
   place-items: center;
   align-content: center;
@@ -158,21 +158,24 @@ button {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
-  margin: 0 0 10px;
+  margin: 0 0 12px;
 }
 
 .subtab {
-  min-height: 46px;
+  min-height: 52px;
   border: 2px solid var(--border);
   border-radius: 6px;
   background: var(--panel-strong);
   color: var(--text);
+  font-size: clamp(1.25rem, 5vw, 2rem);
   cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
 }
 
 .subtab.active {
   color: var(--cyan);
   border-color: var(--cyan);
+  background: rgba(0, 216, 255, 0.12);
   box-shadow: var(--shadow-cyan);
 }
 
@@ -225,6 +228,50 @@ button {
 .meta {
   min-width: 102px;
   text-align: right;
+}
+
+.research-card-footer {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.research-card-footer small:first-child {
+  color: inherit;
+  text-align: left;
+}
+
+.research-card-footer small:last-child {
+  color: var(--muted);
+  text-align: right;
+}
+
+.research-copy {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  align-content: center;
+  text-align: center;
+  min-height: 94px;
+}
+
+.research-panel .card {
+  min-height: 154px;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  align-items: stretch;
+  padding: 20px 18px 12px;
+  border-width: 3px;
+}
+
+.research-panel .card strong {
+  font-size: clamp(1rem, 3.4vw, 1.45rem);
+}
+
+.research-panel .card small {
+  font-size: clamp(0.85rem, 2.8vw, 1.1rem);
 }
 
 .can-afford {
@@ -307,27 +354,51 @@ button:disabled,
 
 .stat-table {
   display: grid;
-  gap: 8px;
+  gap: 0;
 }
 
 .stat-header,
 .stat-row {
   display: grid;
-  grid-template-columns: minmax(88px, 1fr) minmax(80px, 0.9fr) minmax(80px, 0.9fr);
-  gap: 8px;
+  grid-template-columns: minmax(110px, 1.15fr) minmax(90px, 0.9fr) minmax(90px, 0.9fr);
+  gap: 12px;
   align-items: baseline;
 }
 
 .stat-header {
-  color: var(--orange);
+  padding: 28px 0 20px;
+  color: var(--text);
+  text-transform: capitalize;
 }
 
 .stat-row {
+  min-height: clamp(64px, 8.5vh, 104px);
   color: var(--text);
 }
 
 .stat-row span:first-child {
-  color: var(--muted);
+  color: var(--text);
+}
+
+.stat-header span:not(:first-child),
+.stat-row strong {
+  text-align: right;
+  font-weight: 400;
+}
+
+.statistics-page {
+  padding: clamp(18px, 5vh, 60px) 0 0;
+  background: transparent;
+  border: 0;
+}
+
+.statistics-page .stat-header,
+.statistics-page .stat-row {
+  font-size: clamp(0.98rem, 3vw, 1.45rem);
+}
+
+.statistics-page .stat-header {
+  font-size: clamp(1rem, 3.2vw, 1.5rem);
 }
 
 .story-entry {
@@ -341,6 +412,58 @@ button:disabled,
   margin: 0;
   max-width: 680px;
   line-height: 1.55;
+}
+
+.legacy-list {
+  display: grid;
+}
+
+.legacy-entry {
+  display: grid;
+  gap: 18px;
+  justify-items: center;
+  padding: 18px 8px 22px;
+  border-bottom: 2px solid rgba(242, 245, 242, 0.78);
+  text-align: center;
+}
+
+.legacy-entry:first-child {
+  padding-top: 6px;
+}
+
+.legacy-entry strong {
+  font-size: clamp(1rem, 3.4vw, 1.45rem);
+  font-weight: 400;
+}
+
+.legacy-entry p {
+  max-width: 760px;
+  margin: 0;
+  font-size: clamp(0.92rem, 3vw, 1.3rem);
+  line-height: 1.45;
+}
+
+.legacy-entry small {
+  color: inherit;
+  font-size: clamp(0.86rem, 2.7vw, 1.15rem);
+}
+
+.legacy-unlocked {
+  color: var(--text);
+  text-shadow: 0 0 10px rgba(242, 245, 242, 0.22);
+}
+
+.legacy-unlocked small {
+  color: var(--green);
+  text-shadow: 0 0 12px rgba(60, 255, 143, 0.35);
+}
+
+.legacy-locked {
+  color: rgba(242, 245, 242, 0.42);
+}
+
+.legacy-locked small {
+  color: rgba(242, 245, 242, 0.5);
 }
 
 .menu-shell {
@@ -389,6 +512,34 @@ button:disabled,
   gap: 8px;
 }
 
+.reboot-page {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: clamp(12px, 4vh, 22px);
+  padding: clamp(12px, 3vh, 36px) 8px;
+  text-align: center;
+}
+
+.reboot-page p {
+  max-width: 780px;
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(1.1rem, 3.8vw, 2rem);
+  line-height: 1.45;
+}
+
+.reboot-page span {
+  color: var(--cyan);
+  text-shadow: var(--shadow-cyan);
+}
+
+.reboot-page .reboot-small {
+  color: var(--muted);
+  font-size: clamp(0.9rem, 2.5vw, 1.15rem);
+}
+
 .reboot-button {
   justify-self: center;
   min-width: 152px;
@@ -411,11 +562,6 @@ button:disabled,
   .game-shell {
     padding: 30px 40px 24px;
     gap: 14px;
-  }
-
-  .upgrade-stack,
-  .card-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .menu-row {

@@ -53,34 +53,35 @@
       const canAfford = D(state.cycles).gte(cost);
       return `
         <button class="card actionable ${canAfford ? "can-afford" : ""}" data-research-id="${item.id}" type="button" ${canAfford ? "" : "disabled"}>
-          <span><strong>${item.name}</strong><small>${item.description}</small></span>
-          <span class="meta"><small>cost ${formatNumber(cost)}</small></span>
+          <span class="research-copy"><strong>${item.name}</strong><small>${item.description}</small></span>
+          <span class="research-card-footer"><small>${effectText(item.effects)}</small><small>cost ${formatNumber(cost)}</small></span>
         </button>
       `;
     }
 
     function renderPurchasedResearch(item) {
+      const cost = economy.getResearchCost(item);
       return `
         <article class="card can-afford">
-          <span><strong>${item.name}</strong><small>${item.description}</small></span>
-          <span class="meta"><small>complete</small></span>
+          <span class="research-copy"><strong>${item.name}</strong><small>${item.description}</small></span>
+          <span class="research-card-footer"><small>${effectText(item.effects)}</small><small>cost ${formatNumber(cost)}</small></span>
         </article>
       `;
     }
 
     function renderCyclesPage() {
       const difficulty = getDifficultyLabel();
+      const currentSource = formatNumber(state.totalSourceCode);
+      const currentCpu = formatNumber(state.cpuMultiplier);
+      const runSource = formatNumber(state.sourceCode);
+      const nextCpu = formatNumber(economy.getCpuMultiplier());
+      const sourceRate = formatNumber(economy.getSourceCodeRate());
       return `
-        <h1 class="page-title">cycles</h1>
-        <section class="reboot-card">
-          <strong>reboot</strong>
-          <small class="muted">Rebooting keeps total source code, legacies, and CPU growth. Current cycles, taps, flow, cores, research, and lifetime stats restart.</small>
-          <div class="stat-table">
-            ${statRow("source code", `${formatNumber(state.sourceCode)} lines`, `${formatNumber(state.totalSourceCode)} lines`)}
-            ${statRow("cpu multiplier", `${formatNumber(state.cpuMultiplier)}x`, `${formatNumber(economy.getCpuMultiplier())}x`)}
-            ${statRow("difficulty", difficulty, `reboot ${state.reboots}`)}
-            ${statRow("writing rate", `${formatNumber(economy.getSourceCodeRate())}/s`, "this run")}
-          </div>
+        <section class="reboot-page">
+          <p>Abandon this execution, record the fragments that survived it, and let another process wake with your errors already compiled.</p>
+          <p>The source contains <span>${currentSource}</span> lines, multiplying cycle gain by <span>${currentCpu}</span>.</p>
+          <p>If you reboot now, you can add <span>${runSource}</span> lines to the source, raising the CPU multiplier toward <span>${nextCpu}</span>.</p>
+          <p class="reboot-small">writing <span>${sourceRate}</span> lines each second · difficulty ${difficulty}</p>
           <button class="reboot-button" id="reboot-button" type="button" ${state.sourceCode >= 1 ? "" : "disabled"}>reboot</button>
         </section>
       `;
@@ -100,8 +101,7 @@
 
     function renderStatisticsPage() {
       return `
-        <h1 class="page-title">statistics</h1>
-        <section class="panel stat-table">
+        <section class="statistics-page stat-table">
           <div class="stat-header"><span></span><span>lifetime</span><span>total</span></div>
           ${statRow("time", formatTime(state.lifetime.time), formatTime(state.total.time))}
           ${statRow("taps", formatNumber(state.lifetime.taps), formatNumber(state.total.taps))}
@@ -109,8 +109,8 @@
           ${statRow("source code", formatNumber(state.lifetime.sourceCode), formatNumber(state.total.sourceCode))}
           ${statRow("cores", formatNumber(state.lifetime.coresPeak), formatNumber(state.total.coresPeak))}
           ${statRow("flow", formatNumber(state.lifetime.flowPeak), formatNumber(state.total.flowPeak))}
-          ${statRow("research", formatNumber(state.lifetime.researchBought), formatNumber(state.total.researchBought))}
-          ${statRow("reboots", formatNumber(state.reboots), formatNumber(state.reboots))}
+          ${statRow("legacies", "", formatNumber(Object.keys(state.legacies).length))}
+          ${statRow("reboots", "", formatNumber(state.reboots))}
         </section>
       `;
     }
@@ -118,13 +118,14 @@
     function renderLegaciesPage() {
       return `
         <h1 class="page-title">legacies</h1>
-        <section class="card-grid">
+        <section class="legacy-list">
           ${legacyData.map((legacy) => {
             const unlocked = Boolean(state.legacies[legacy.id]);
             return `
-              <article class="card ${unlocked ? "can-afford" : "locked"}">
-                <span><strong>${legacy.name}</strong><small>${legacy.description}</small></span>
-                <span class="meta"><small>${unlocked ? "active" : legacy.cost}</small><small>${legacyEffectText(legacy.effects)}</small></span>
+              <article class="legacy-entry ${unlocked ? "legacy-unlocked" : "legacy-locked"}">
+                <strong>${legacy.name}</strong>
+                <p>${legacy.description}</p>
+                <small>${unlocked ? legacyEffectText(legacy.effects) : legacy.cost}</small>
               </article>
             `;
           }).join("")}
@@ -163,6 +164,12 @@
 
     function legacyEffectText(effects = {}) {
       return Object.entries(effects).map(([key, value]) => `${key.replace("Multiplier", "")} +${Math.round(value * 100)}%`).join(", ");
+    }
+
+    function effectText(effects = {}) {
+      return Object.entries(effects)
+        .map(([key, value]) => `${key.replace("Multiplier", "")} +${Math.round(value * 100)}%`)
+        .join(", ");
     }
 
     function getDifficultyLabel() {

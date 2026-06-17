@@ -27,14 +27,17 @@
   let holdTimer = 0;
   let lastFrame = performance.now();
   let pageDirty = true;
+  let resetting = false;
 
   disableContextBehavior();
   bindMenu();
   document.addEventListener("pointerup", stopHolding);
   document.addEventListener("pointercancel", stopHolding);
-  setInterval(() => store.saveState(state), config.save.intervalMs);
+  const saveTimer = setInterval(() => {
+    if (!resetting) store.saveState(state);
+  }, config.save.intervalMs);
   document.addEventListener("visibilitychange", () => {
-    if (document.hidden) store.saveState(state);
+    if (document.hidden && !resetting) store.saveState(state);
   });
 
   requestAnimationFrame(tick);
@@ -224,6 +227,8 @@
     });
     document.getElementById("reboot-button")?.addEventListener("click", reboot);
     document.getElementById("reset-save")?.addEventListener("click", () => {
+      resetting = true;
+      clearInterval(saveTimer);
       store.clearSave();
       location.reload();
     });

@@ -20,14 +20,13 @@
     const decimal = D(value);
     if (!Decimal.isFinite(decimal)) return decimal.toString();
     if (decimal.gte("1e8")) {
-      if (decimal.layer > 1) return decimal.toStringWithDecimalPlaces(2);
-      return `${trimNumber(decimal.mantissaWithDecimalPlaces(2))}e${decimal.exponent}`;
+      if (decimal.layer > 1) return decimal.toString().replace(/\.\d+/g, "");
+      return `${Math.floor(decimal.mantissa)}e${decimal.exponent}`;
     }
 
-    const number = Math.max(0, decimal.toNumber() || 0);
+    const number = Math.floor(Math.max(0, decimal.toNumber() || 0));
     if (number < 1000) {
-      const rounded = Math.floor(number * 10) / 10;
-      return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+      return String(number);
     }
 
     const units = ["k", "M", "B", "T", "Qa", "Qi", "Sx"];
@@ -38,12 +37,7 @@
       scaled /= 1000;
       unit = next;
     }
-    const display = scaled >= 100 ? scaled.toFixed(0) : scaled.toFixed(2);
-    return `${trimNumber(display)}${unit}`;
-  }
-
-  function trimNumber(value) {
-    return String(value).replace(/(\.\d*?[1-9])0+$/, "$1").replace(/\.0+$/, "");
+    return `${Math.floor(scaled)}${unit}`;
   }
 
   function formatTime(seconds) {

@@ -28,13 +28,25 @@
       columns.length = 0;
       const count = Math.ceil(width / cell);
       for (let i = 0; i < count; i += 1) {
-        columns.push({
+        const column = {
           x: i * cell,
-          y: Math.random() * -height,
-          speed: (settings.columnMinSpeed + Math.random() * settings.columnSpeedRange) * settings.baseSpeed,
-          threshold: Math.random()
-        });
+          threshold: Math.random(),
+          active: false
+        };
+        resetColumn(column, Math.random() * -height);
+        column.active = column.threshold <= settings.baseDensity;
+        columns.push(column);
       }
+    };
+
+    const resetColumn = (column, y = Math.random() * -height * settings.columnResetHeightRatio) => {
+      column.y = y;
+      column.speed = (settings.columnMinSpeed + Math.random() * settings.columnSpeedRange) * settings.baseSpeed;
+      column.flowSpeedMultiplier = settings.flowSpeedMultiplierMin + Math.random() * settings.flowSpeedMultiplierRange;
+      column.flowBrightness = settings.flowBrightnessMin + Math.random() * settings.flowBrightnessRange;
+      column.trailOffset = Math.floor(Math.random() * settings.columnTrailRange);
+      column.spawnDensity = Math.max(settings.baseDensity, density);
+      column.active = true;
     };
 
     const drawGlyph = (text, x, y, alpha, bright, bold) => {
@@ -53,7 +65,7 @@
       pulse() {
         density = Math.min(settings.maxDensity, density + settings.tapDensityBoost);
         speedBoost = Math.min(settings.maxTapSpeedBoost, speedBoost + settings.tapSpeedBoost);
-        if (Math.random() > settings.burstChance) return;
+        if (Math.random() > settings.tapBrightRainChance) return;
         for (let i = 0; i < settings.burstCount; i += 1) {
           const trail = settings.burstMinTrail + Math.floor(Math.random() * settings.burstTrailRange);
           bursts.push({
@@ -84,22 +96,31 @@
 
         columns.forEach((column, index) => {
           const activeDensity = Math.max(settings.baseDensity, density);
-          if (!flowing && column.threshold > activeDensity) return;
-          if (flowing && column.threshold > activeDensity * settings.flowColumnMultiplier) return;
+          const shouldBeActive = flowing
+            ? column.threshold <= activeDensity * settings.flowColumnMultiplier
+            : column.threshold <= activeDensity;
 
-          column.y += column.speed * (settings.baseSpeed + (flowing ? settings.flowSpeed : 0) + density) * dt;
-          if (column.y > height + cell * settings.columnResetRows) {
-            column.y = Math.random() * -height * settings.columnResetHeightRatio;
-            column.speed = (settings.columnMinSpeed + Math.random() * settings.columnSpeedRange) * settings.baseSpeed;
+          if (!column.active) {
+            if (!shouldBeActive) return;
+            resetColumn(column);
           }
 
-          const trail = settings.baseTrail + Math.floor(density * settings.densityTrailScale);
+          const flowSpeed = flowing ? settings.flowSpeed * column.flowSpeedMultiplier : 0;
+          column.y += column.speed * (settings.baseSpeed + flowSpeed + column.spawnDensity) * dt;
+          if (column.y > height + cell * settings.columnResetRows) {
+            column.active = false;
+            if (!shouldBeActive) return;
+            resetColumn(column);
+          }
+
+          const trail = settings.baseTrail + column.trailOffset + Math.floor(column.spawnDensity * settings.densityTrailScale);
           for (let row = 0; row < trail; row += 1) {
             const y = column.y - row * cell;
             if (y < -cell || y > height) continue;
             const glyph = glyphs[(index * settings.columnGlyphStride + row * settings.rowGlyphStride + Math.floor(performance.now() / settings.glyphChangeMs)) % glyphs.length];
             const floor = flowing ? settings.flowAlphaFloor : settings.tapAlphaFloor;
-            const alpha = Math.max(floor, (1 - row / trail) * (floor + density * settings.densityAlphaScale));
+            const baseAlpha = Math.max(floor, (1 - row / trail) * (floor + column.spawnDensity * settings.densityAlphaScale));
+            const alpha = Math.min(1, flowing ? baseAlpha * column.flowBrightness : baseAlpha);
             drawGlyph(glyph, column.x, y, alpha, row === 0, false);
           }
         });
