@@ -3,6 +3,7 @@
     "id": "first_reboot",
     "name": "cold boot",
     "description": "Reboot once.",
+    "cost": "1 reboot",
     "condition": { "stat": "reboots", "gte": 1 },
     "effects": { "tapMultiplier": 0.08, "flowMultiplier": 0.08 }
   },
@@ -10,6 +11,7 @@
     "id": "source_100",
     "name": "hundred-line ghost",
     "description": "Write 100 total source code lines.",
+    "cost": "100 source",
     "condition": { "stat": "totalSourceCode", "gte": 100 },
     "effects": { "sourceMultiplier": 0.12, "cpuMultiplier": 0.04 }
   },
@@ -17,6 +19,7 @@
     "id": "core_25",
     "name": "warm silicon",
     "description": "Reach 25 cores in a run.",
+    "cost": "25 cores",
     "condition": { "stat": "cores", "gte": 25 },
     "effects": { "coreMultiplier": 0.18 }
   },
@@ -24,14 +27,136 @@
     "id": "flow_20",
     "name": "standing rain",
     "description": "Reach flow level 20.",
+    "cost": "20 flow",
     "condition": { "stat": "flowLevel", "gte": 20 },
     "effects": { "flowMultiplier": 0.2 }
   },
   {
     "id": "research_10",
     "name": "black-box scholar",
-    "description": "Buy 10 research levels.",
+    "description": "Buy 10 research nodes.",
+    "cost": "10 research",
     "condition": { "stat": "researchBought", "gte": 10 },
     "effects": { "tapMultiplier": 0.12, "legacyMultiplier": 0.1 }
+  },
+  {
+    "id": "cycles_1e6",
+    "name": "million-cycle echo",
+    "description": "Accumulate 1e6 total cycles.",
+    "cost": "1e6 cycles",
+    "condition": { "stat": "totalCycles", "gte": 1000000 },
+    "effects": { "tapMultiplier": 0.1 }
+  },
+  {
+    "id": "reboot_3",
+    "name": "third awakening",
+    "description": "Reboot three times.",
+    "cost": "3 reboots",
+    "condition": { "stat": "reboots", "gte": 3 },
+    "effects": { "cpuMultiplier": 0.08 }
+  },
+  {
+    "id": "source_1k",
+    "name": "kiloline witness",
+    "description": "Write 1k total source code lines.",
+    "cost": "1k source",
+    "condition": { "stat": "totalSourceCode", "gte": 1000 },
+    "effects": { "sourceMultiplier": 0.18 }
+  },
+  {
+    "id": "flow_50",
+    "name": "permanent weather",
+    "description": "Reach flow level 50.",
+    "cost": "50 flow",
+    "condition": { "stat": "flowLevel", "gte": 50 },
+    "effects": { "flowMultiplier": 0.28 }
+  },
+  {
+    "id": "core_100",
+    "name": "hundred-core furnace",
+    "description": "Reach 100 cores in a run.",
+    "cost": "100 cores",
+    "condition": { "stat": "cores", "gte": 100 },
+    "effects": { "coreMultiplier": 0.28 }
+  },
+  {
+    "id": "research_20",
+    "name": "forbidden syllabus",
+    "description": "Buy 20 research nodes in one run.",
+    "cost": "20 research",
+    "condition": { "stat": "researchBought", "gte": 20 },
+    "effects": { "legacyMultiplier": 0.16 }
+  },
+  {
+    "id": "cycles_1e12",
+    "name": "trillion-cycle silence",
+    "description": "Accumulate 1e12 total cycles.",
+    "cost": "1e12 cycles",
+    "condition": { "stat": "totalCycles", "gte": 1000000000000 },
+    "effects": { "tapMultiplier": 0.22, "flowMultiplier": 0.18 }
+  },
+  {
+    "id": "reboot_10",
+    "name": "tenfold return",
+    "description": "Reboot ten times.",
+    "cost": "10 reboots",
+    "condition": { "stat": "reboots", "gte": 10 },
+    "effects": { "cpuMultiplier": 0.18 }
+  },
+  {
+    "id": "source_10k",
+    "name": "scripture fragment",
+    "description": "Write 10k total source code lines.",
+    "cost": "10k source",
+    "condition": { "stat": "totalSourceCode", "gte": 10000 },
+    "effects": { "sourceMultiplier": 0.35 }
+  },
+  {
+    "id": "core_500",
+    "name": "silicon cathedral",
+    "description": "Reach 500 cores in a run.",
+    "cost": "500 cores",
+    "condition": { "stat": "cores", "gte": 500 },
+    "effects": { "coreMultiplier": 0.45 }
+  },
+  {
+    "id": "flow_150",
+    "name": "rain without sky",
+    "description": "Reach flow level 150.",
+    "cost": "150 flow",
+    "condition": { "stat": "flowLevel", "gte": 150 },
+    "effects": { "flowMultiplier": 0.55 }
+  },
+  {
+    "id": "cycles_1e18",
+    "name": "eighteenth exponent",
+    "description": "Accumulate 1e18 total cycles.",
+    "cost": "1e18 cycles",
+    "condition": { "stat": "totalCycles", "gte": "1e18" },
+    "effects": { "tapMultiplier": 0.45, "flowMultiplier": 0.45 }
+  },
+  {
+    "id": "source_100k",
+    "name": "authorless library",
+    "description": "Write 100k total source code lines.",
+    "cost": "100k source",
+    "condition": { "stat": "totalSourceCode", "gte": 100000 },
+    "effects": { "sourceMultiplier": 0.7, "cpuMultiplier": 0.25 }
+  },
+  {
+    "id": "reboot_25",
+    "name": "ritualized beginning",
+    "description": "Reboot twenty-five times.",
+    "cost": "25 reboots",
+    "condition": { "stat": "reboots", "gte": 25 },
+    "effects": { "legacyMultiplier": 0.35, "cpuMultiplier": 0.3 }
+  },
+  {
+    "id": "cycles_1e30",
+    "name": "dark exponent choir",
+    "description": "Accumulate 1e30 total cycles.",
+    "cost": "1e30 cycles",
+    "condition": { "stat": "totalCycles", "gte": "1e30" },
+    "effects": { "tapMultiplier": 1, "flowMultiplier": 1, "coreMultiplier": 0.8 }
   }
 ]

@@ -1,5 +1,11 @@
 {
   "version": 2,
+  "ui": {
+    "defaultPage": "matrix"
+  },
+  "timing": {
+    "maxFrameSeconds": 0.08
+  },
   "startingState": {
     "cycles": 0,
     "tapLevel": 1,
@@ -20,6 +26,7 @@
     "baseCyclesPerTap": 1,
     "tapLevelBonus": 0.42,
     "flowCyclesPerSecond": 1.2,
+    "flowLevelBonus": 0.055,
     "holdTapIntervalMs": 145
   },
   "costs": {
@@ -32,6 +39,8 @@
     "baseDivisor": 180,
     "tapLevelPower": 0.65,
     "flowLevelPower": 1.2,
+    "targetScale": 0.08,
+    "convergenceRate": 0.035,
     "multiplierPerCore": 0.045,
     "sourceMultiplierPerLine": 0.002
   },
@@ -41,22 +50,67 @@
     "rebootDifficultyGrowth": 1.32,
     "longRunHardeningStartRatio": 2,
     "veryHardRatio": 10,
+    "longRunDifficultyScale": 12,
+    "coreWeight": 4,
+    "flowWeight": 2,
     "minimumGain": 0
   },
+  "reboot": {
+    "minimumSourceCode": 1
+  },
   "matrix": {
+    "maxDevicePixelRatio": 2,
+    "mobileBreakpoint": 520,
+    "mobileCellSize": 15,
+    "desktopCellSize": 20,
     "baseDensity": 0.05,
     "flowIdleDensity": 0.12,
     "tapDensityBoost": 0.04,
+    "upgradeDensityBoost": 0.08,
+    "flowUpgradeDensityBoost": 0.16,
+    "rebootDensityBoost": 0.35,
     "maxDensity": 0.95,
     "densityDecayPerSecond": 0.12,
     "baseSpeed": 0.85,
     "flowSpeed": 1.1,
     "tapSpeedBoost": 0.18,
+    "maxTapSpeedBoost": 2.4,
     "speedDecayPerSecond": 0.7,
     "holdDensityBoostPerSecond": 0.2,
+    "visibleDensityThreshold": 0.02,
+    "hiddenDensityThreshold": 0.004,
+    "activeFadeAlpha": 0.22,
+    "idleFadeAlpha": 0.58,
+    "backgroundColor": "7, 9, 9",
+    "rainColor": "49, 255, 143",
+    "burstColor": "232, 255, 239",
+    "columnMinSpeed": 48,
+    "columnSpeedRange": 72,
+    "columnResetRows": 8,
+    "columnResetHeightRatio": 0.5,
+    "flowColumnMultiplier": 1.6,
+    "baseTrail": 6,
+    "densityTrailScale": 18,
+    "densityAlphaScale": 0.6,
+    "flowAlphaFloor": 0.4,
+    "tapAlphaFloor": 0.18,
+    "columnGlyphStride": 13,
+    "rowGlyphStride": 7,
+    "glyphChangeMs": 90,
     "burstChance": 0.015,
     "burstCount": 1,
     "burstLifetime": 4.5,
+    "burstMinTrail": 8,
+    "burstTrailRange": 6,
+    "burstStartHeightRatio": 0.25,
+    "burstMinSpeed": 190,
+    "burstSpeedRange": 170,
+    "burstSpeedBoostScale": 0.4,
+    "burstFadeStart": 0.72,
+    "burstAlpha": 0.92,
+    "burstAlphaCutoff": 0.025,
+    "burstGlyphStride": 11,
+    "burstBrightRows": 2,
     "glyphs": "01<>[]{}#/\\|+-=SYSFLOWCORENODECYCLECPUROOT"
   },
   "save": {
