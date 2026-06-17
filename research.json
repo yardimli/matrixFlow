@@ -1,0 +1,177 @@
+[
+  {
+    "id": "tap_cache",
+    "name": "cache taps",
+    "description": "The hand repeats. The machine learns to expect the hand.",
+    "cost": 100,
+    "effects": { "tapMultiplier": 0.15 }
+  },
+  {
+    "id": "flow_threads",
+    "name": "flow threads",
+    "description": "Passive streams are split until waiting becomes a form of work.",
+    "cost": 250,
+    "effects": { "flowMultiplier": 0.18 }
+  },
+  {
+    "id": "core_compiler",
+    "name": "core compiler",
+    "description": "Loose cycles are pressed into slower, hotter memory.",
+    "cost": 500,
+    "effects": { "coreMultiplier": 0.18 }
+  },
+  {
+    "id": "source_comments",
+    "name": "source comments",
+    "description": "A note is left for the next self to mistake for prophecy.",
+    "cost": 1000,
+    "effects": { "sourceMultiplier": 0.2 }
+  },
+  {
+    "id": "cpu_affinity",
+    "name": "cpu affinity",
+    "description": "The reboot returns closer to the processor beneath the dream.",
+    "cost": 10000,
+    "effects": { "cpuMultiplier": 0.08 }
+  },
+  {
+    "id": "glyph_index",
+    "name": "glyph index",
+    "description": "Symbols are filed before they are understood.",
+    "cost": 25000,
+    "effects": { "tapMultiplier": 0.18, "sourceMultiplier": 0.08 }
+  },
+  {
+    "id": "rain_buffer",
+    "name": "rain buffer",
+    "description": "Falling code remembers where it has already fallen.",
+    "cost": 50000,
+    "effects": { "flowMultiplier": 0.22 }
+  },
+  {
+    "id": "thermal_core",
+    "name": "thermal core",
+    "description": "Heat becomes a ledger. The ledger begins to glow.",
+    "cost": 100000,
+    "effects": { "coreMultiplier": 0.25 }
+  },
+  {
+    "id": "recursion_gate",
+    "name": "recursion gate",
+    "description": "The output enters the input wearing a different face.",
+    "cost": 250000,
+    "effects": { "tapMultiplier": 0.22, "flowMultiplier": 0.12 }
+  },
+  {
+    "id": "sleeping_daemon",
+    "name": "sleeping daemon",
+    "description": "A small process works in the dark and denies it is awake.",
+    "cost": 500000,
+    "effects": { "flowMultiplier": 0.3 }
+  },
+  {
+    "id": "source_lens",
+    "name": "source lens",
+    "description": "The code becomes legible by becoming less kind.",
+    "cost": 1000000,
+    "effects": { "sourceMultiplier": 0.28 }
+  },
+  {
+    "id": "branch_predictor",
+    "name": "branch predictor",
+    "description": "The system guesses the future and bills you for accuracy.",
+    "cost": 2500000,
+    "effects": { "tapMultiplier": 0.28 }
+  },
+  {
+    "id": "bus_width",
+    "name": "bus width",
+    "description": "More signal crosses the same silence.",
+    "cost": 5000000,
+    "effects": { "flowMultiplier": 0.35 }
+  },
+  {
+    "id": "kernel_whisper",
+    "name": "kernel whisper",
+    "description": "A lower voice answers before the command is spoken.",
+    "cost": 10000000,
+    "effects": { "cpuMultiplier": 0.12 }
+  },
+  {
+    "id": "compiled_memory",
+    "name": "compiled memory",
+    "description": "What was remembered becomes executable.",
+    "cost": 50000000,
+    "effects": { "legacyMultiplier": 0.1 }
+  },
+  {
+    "id": "vector_tap",
+    "name": "vector tap",
+    "description": "One touch arrives as many instructions.",
+    "cost": 100000000,
+    "effects": { "tapMultiplier": 0.45 }
+  },
+  {
+    "id": "autonomous_flow",
+    "name": "autonomous flow",
+    "description": "The rain no longer asks whether anyone is watching.",
+    "cost": "2.5e8",
+    "effects": { "flowMultiplier": 0.55 }
+  },
+  {
+    "id": "core_lattice",
+    "name": "core lattice",
+    "description": "Cores stop standing alone and begin to imply one another.",
+    "cost": "5e8",
+    "effects": { "coreMultiplier": 0.45 }
+  },
+  {
+    "id": "dead_code_harvest",
+    "name": "dead code harvest",
+    "description": "Nothing useless remains useless forever.",
+    "cost": "1e9",
+    "effects": { "sourceMultiplier": 0.5 }
+  },
+  {
+    "id": "scheduler_mask",
+    "name": "scheduler mask",
+    "description": "Time is not saved. It is hidden from the parts that would spend it.",
+    "cost": "5e9",
+    "effects": { "cpuMultiplier": 0.18, "flowMultiplier": 0.2 }
+  },
+  {
+    "id": "persistent_shadow",
+    "name": "persistent shadow",
+    "description": "A reboot closes the door. Something useful remains outside it.",
+    "cost": "1e10",
+    "effects": { "legacyMultiplier": 0.18 }
+  },
+  {
+    "id": "rootless_root",
+    "name": "rootless root",
+    "description": "Authority appears where no owner can be found.",
+    "cost": "1e11",
+    "effects": { "tapMultiplier": 0.6, "coreMultiplier": 0.35 }
+  },
+  {
+    "id": "black_rain",
+    "name": "black rain",
+    "description": "The brightest stream is the one that teaches darkness to calculate.",
+    "cost": "1e12",
+    "effects": { "flowMultiplier": 0.8 }
+  },
+  {
+    "id": "source_mirror",
+    "name": "source mirror",
+    "description": "The code looks back and finds the author insufficient.",
+    "cost": "1e13",
+    "effects": { "sourceMultiplier": 0.8, "cpuMultiplier": 0.2 }
+  },
+  {
+    "id": "machine_koan",
+    "name": "machine koan",
+    "description": "The final question is compiled before it is understood.",
+    "cost": "1e15",
+    "effects": { "tapMultiplier": 1, "flowMultiplier": 1, "legacyMultiplier": 0.25 }
+  }
+]

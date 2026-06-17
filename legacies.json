@@ -1,0 +1,37 @@
+[
+  {
+    "id": "first_reboot",
+    "name": "cold boot",
+    "description": "Reboot once.",
+    "condition": { "stat": "reboots", "gte": 1 },
+    "effects": { "tapMultiplier": 0.08, "flowMultiplier": 0.08 }
+  },
+  {
+    "id": "source_100",
+    "name": "hundred-line ghost",
+    "description": "Write 100 total source code lines.",
+    "condition": { "stat": "totalSourceCode", "gte": 100 },
+    "effects": { "sourceMultiplier": 0.12, "cpuMultiplier": 0.04 }
+  },
+  {
+    "id": "core_25",
+    "name": "warm silicon",
+    "description": "Reach 25 cores in a run.",
+    "condition": { "stat": "cores", "gte": 25 },
+    "effects": { "coreMultiplier": 0.18 }
+  },
+  {
+    "id": "flow_20",
+    "name": "standing rain",
+    "description": "Reach flow level 20.",
+    "condition": { "stat": "flowLevel", "gte": 20 },
+    "effects": { "flowMultiplier": 0.2 }
+  },
+  {
+    "id": "research_10",
+    "name": "black-box scholar",
+    "description": "Buy 10 research levels.",
+    "condition": { "stat": "researchBought", "gte": 10 },
+    "effects": { "tapMultiplier": 0.12, "legacyMultiplier": 0.1 }
+  }
+]

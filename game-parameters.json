@@ -1,0 +1,67 @@
+{
+  "version": 2,
+  "startingState": {
+    "cycles": 0,
+    "tapLevel": 1,
+    "flowLevel": 0,
+    "cores": 0,
+    "sourceCode": 0,
+    "totalSourceCode": 0,
+    "cpuMultiplier": 1,
+    "reboots": 0,
+    "previousRunSourceCode": 1
+  },
+  "unlocks": {
+    "tapUpgradeClicks": 5,
+    "flowCycles": 100,
+    "flowTapLevel": 10
+  },
+  "production": {
+    "baseCyclesPerTap": 1,
+    "tapLevelBonus": 0.42,
+    "flowCyclesPerSecond": 1.2,
+    "holdTapIntervalMs": 145
+  },
+  "costs": {
+    "tapBase": 10,
+    "tapGrowth": 1.38,
+    "flowBase": 125,
+    "flowGrowth": 1.82
+  },
+  "core": {
+    "baseDivisor": 180,
+    "tapLevelPower": 0.65,
+    "flowLevelPower": 1.2,
+    "multiplierPerCore": 0.045,
+    "sourceMultiplierPerLine": 0.002
+  },
+  "sourceCode": {
+    "baseDivisor": 300,
+    "cpuDivisor": 11,
+    "rebootDifficultyGrowth": 1.32,
+    "longRunHardeningStartRatio": 2,
+    "veryHardRatio": 10,
+    "minimumGain": 0
+  },
+  "matrix": {
+    "baseDensity": 0.05,
+    "flowIdleDensity": 0.12,
+    "tapDensityBoost": 0.04,
+    "maxDensity": 0.95,
+    "densityDecayPerSecond": 0.12,
+    "baseSpeed": 0.85,
+    "flowSpeed": 1.1,
+    "tapSpeedBoost": 0.18,
+    "speedDecayPerSecond": 0.7,
+    "holdDensityBoostPerSecond": 0.2,
+    "burstChance": 0.015,
+    "burstCount": 1,
+    "burstLifetime": 4.5,
+    "glyphs": "01<>[]{}#/\\|+-=SYSFLOWCORENODECYCLECPUROOT"
+  },
+  "save": {
+    "key": "matrix-flow-save-v2",
+    "legacyKey": "matrix-flow-save-v1",
+    "intervalMs": 2500
+  }
+}

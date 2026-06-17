@@ -1,0 +1,38 @@
+[
+  {
+    "id": "first_contact",
+    "title": "first contact",
+    "text": "The screen waits. You touch it, and the dark learns how to move.",
+    "condition": { "stat": "totalTaps", "gte": 1 }
+  },
+  {
+    "id": "first_flow",
+    "title": "first flow",
+    "text": "A stream that no hand pushes is still a confession of hands.",
+    "condition": { "stat": "flowLevel", "gte": 1 }
+  },
+  {
+    "id": "research_opens",
+    "title": "research opens",
+    "text": "Knowledge is not light here. It is a sharper darkness.",
+    "condition": { "stat": "researchBought", "gte": 1 }
+  },
+  {
+    "id": "first_reboot",
+    "title": "first reboot",
+    "text": "You wake where you began, carrying one impossible line from the old world.",
+    "condition": { "stat": "reboots", "gte": 1 }
+  },
+  {
+    "id": "ten_cores",
+    "title": "ten cores",
+    "text": "The machine stops counting your requests and starts predicting your hunger.",
+    "condition": { "stat": "cores", "gte": 10 }
+  },
+  {
+    "id": "deep_source",
+    "title": "deep source",
+    "text": "Every line you write removes a wall. Every wall removed reveals another author.",
+    "condition": { "stat": "totalSourceCode", "gte": 100 }
+  }
+]
