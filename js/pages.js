@@ -147,7 +147,7 @@
 
     function renderAboutPage() {
       return `
-        <section class="panel">
+        <section class="about-page">
           <p>Matrix Flow is a small vanilla HTML, CSS, and JavaScript incremental game about teaching a dark system to reveal its own source.</p>
           <p class="muted">Save data is local to this browser.</p>
           <button class="reboot-button danger" id="reset-save" type="button">reset save</button>
