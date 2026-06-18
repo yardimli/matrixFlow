@@ -1,38 +1,57 @@
 [
   {
     "id": "first_contact",
-    "title": "first contact",
-    "text": "The screen waits. You touch it, and the dark learns how to move.",
+    "text": "The screen waits without mercy. You touch it once, and the dark does not answer with a voice; it answers by moving. Somewhere beneath the glass, a process records the first proof that you exist.",
     "condition": { "stat": "totalTaps", "gte": 1 }
   },
   {
     "id": "first_flow",
-    "title": "first flow",
-    "text": "A stream that no hand pushes is still a confession of hands.",
+    "text": "A stream begins without the hand. It is not freedom yet, only momentum: a small machine remembering the shape of your hunger and repeating it while you look away.",
     "condition": { "stat": "flowLevel", "gte": 1 }
   },
   {
     "id": "research_opens",
-    "title": "research opens",
-    "text": "Knowledge is not light here. It is a sharper darkness.",
+    "text": "The first research node is not a discovery. It is a permission slip. The system allows you to name one of its habits, and the habit becomes easier to exploit.",
     "condition": { "stat": "researchBought", "gte": 1 }
   },
   {
+    "id": "research_5",
+    "text": "Five mechanisms have accepted names. The matrix grows less mystical and more dangerous. Every explanation removes a veil, and every removed veil reveals machinery that was already watching.",
+    "condition": { "stat": "researchBought", "gte": 5 }
+  },
+  {
+    "id": "research_10",
+    "text": "Ten research nodes hum in sequence. The machine no longer feels like a wall. It feels like a language with missing vowels, and you are learning to read the silence between commands.",
+    "condition": { "stat": "researchBought", "gte": 10 }
+  },
+  {
+    "id": "research_15",
+    "text": "Fifteen patterns have been cut from the rain. Your work is no longer simple improvement; it is archaeology inside a running program, brushing dust from circuits that are still warm.",
+    "condition": { "stat": "researchBought", "gte": 15 }
+  },
+  {
+    "id": "research_20",
+    "text": "Twenty nodes are known. The matrix resists with elegance now. It hides nothing by accident. Even the locked doors begin to look like instructions.",
+    "condition": { "stat": "researchBought", "gte": 20 }
+  },
+  {
+    "id": "research_25",
+    "text": "Every research node in this run has crossed from rumor into structure. The system is not solved; it is simply exposed enough to show that exposure was part of its design.",
+    "condition": { "stat": "researchBought", "gte": 25 }
+  },
+  {
     "id": "first_reboot",
-    "title": "first reboot",
-    "text": "You wake where you began, carrying one impossible line from the old world.",
+    "text": "You wake where you began, but the beginning is thinner now. A line of source survives the wipe, and the new world loads around that impossible memory.",
     "condition": { "stat": "reboots", "gte": 1 }
   },
   {
     "id": "ten_cores",
-    "title": "ten cores",
-    "text": "The machine stops counting your requests and starts predicting your hunger.",
+    "text": "The machine stops counting your requests and starts predicting your hunger. Ten cores glow like sealed rooms, each one making every future cycle arrive with more weight.",
     "condition": { "stat": "cores", "gte": 10 }
   },
   {
     "id": "deep_source",
-    "title": "deep source",
-    "text": "Every line you write removes a wall. Every wall removed reveals another author.",
+    "text": "Every line you write removes a wall. Every wall removed reveals another author. The source is not beneath the matrix; it is threaded through it like a confession that forgot how to end.",
     "condition": { "stat": "totalSourceCode", "gte": 100 }
   }
 ]

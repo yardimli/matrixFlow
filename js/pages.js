@@ -34,7 +34,7 @@
       const available = researchData.filter((item) => !economy.isResearchBought(item.id));
       const purchased = researchData.filter((item) => economy.isResearchBought(item.id));
       return `
-        <h1 class="page-title">research</h1>
+        <div class="research-page">
         <div class="subtabs" role="tablist" aria-label="Research filters">
           <button class="subtab active" type="button" data-research-view="available">available</button>
           <button class="subtab" type="button" data-research-view="purchased">purchased</button>
@@ -45,6 +45,7 @@
         <section class="card-grid research-panel hidden" data-research-panel="purchased">
           ${purchased.length ? purchased.map(renderPurchasedResearch).join("") : `<article class="card"><span><strong>nothing purchased</strong><small>No research has crossed from rumor into memory.</small></span></article>`}
         </section>
+        </div>
       `;
     }
 
@@ -90,10 +91,9 @@
     function renderStoryPage() {
       const unlocked = storyData.filter((entry) => state.unlockedStories[entry.id]);
       return `
-        <h1 class="page-title">story</h1>
-        <section class="card-grid">
-          ${(unlocked.length ? unlocked : [{ title: "silence", text: "The first message has not crossed the glass." }]).map((entry) => `
-            <article class="card story-entry"><strong>${entry.title}</strong><p>${entry.text}</p></article>
+        <section class="story-list">
+          ${(unlocked.length ? unlocked : [{ text: "The first message has not crossed the glass." }]).map((entry) => `
+            <article class="story-entry"><p>${entry.text}</p></article>
           `).join("")}
         </section>
       `;
@@ -117,7 +117,6 @@
 
     function renderLegaciesPage() {
       return `
-        <h1 class="page-title">legacies</h1>
         <section class="legacy-list">
           ${legacyData.map((legacy) => {
             const unlocked = Boolean(state.legacies[legacy.id]);
@@ -135,7 +134,6 @@
 
     function renderHelpPage() {
       return `
-        <h1 class="page-title">help</h1>
         <section class="accordion">
           ${helpData.map((entry, index) => `
             <details class="accordion-item" ${index === 0 ? "open" : ""}>
@@ -149,7 +147,6 @@
 
     function renderAboutPage() {
       return `
-        <h1 class="page-title">about</h1>
         <section class="panel">
           <p>Matrix Flow is a small vanilla HTML, CSS, and JavaScript incremental game about teaching a dark system to reveal its own source.</p>
           <p class="muted">Save data is local to this browser.</p>

@@ -57,10 +57,10 @@ button {
   min-height: 0;
   width: min(100%, 600px);
   margin: 0 auto;
-  padding: max(14px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 10px;
+  gap: 6px;
 }
 
 .hud {
@@ -93,6 +93,7 @@ button {
 .metric-core {
   color: var(--green);
   text-align: center;
+  margin-top: 32px;
 }
 
 .metric-secondary,
@@ -110,8 +111,16 @@ button {
   max-height: 100%;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 8px 2px 10px;
+  padding: 4px 0 6px;
   scrollbar-color: var(--cyan) rgba(255, 255, 255, 0.12);
+}
+
+.research-page {
+  min-height: 0;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
 }
 
 .matrix-page {
@@ -119,7 +128,7 @@ button {
   display: grid;
   grid-template-rows: 1fr auto;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
 }
 
 .tap-zone {
@@ -151,14 +160,14 @@ button {
 .upgrade-stack,
 .card-grid {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .subtabs {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin: 0 0 12px;
+  gap: 6px;
+  margin: 0 0 8px;
 }
 
 .subtab {
@@ -188,7 +197,7 @@ button {
   justify-content: space-between;
   align-items: center;
   gap: 14px;
-  padding: 12px 14px;
+  padding: 10px 12px;
   border: 2px solid var(--border);
   border-radius: 6px;
   background: var(--panel-strong);
@@ -254,15 +263,15 @@ button {
   justify-items: center;
   align-content: center;
   text-align: center;
-  min-height: 94px;
 }
 
 .research-panel .card {
-  min-height: 154px;
+  min-height: 120px;
+  max-height: 150px;
   display: grid;
   grid-template-rows: 1fr auto;
   align-items: stretch;
-  padding: 20px 18px 12px;
+  padding: 10px 9px 6px;
   border-width: 3px;
 }
 
@@ -272,6 +281,14 @@ button {
 
 .research-panel .card small {
   font-size: clamp(0.85rem, 2.8vw, 1.1rem);
+}
+
+.research-panel {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 2px;
+  scrollbar-color: var(--cyan) rgba(255, 255, 255, 0.12);
 }
 
 .can-afford {
@@ -297,7 +314,7 @@ button:disabled,
 }
 
 .panel {
-  padding: 14px;
+  padding: 10px;
   border: 2px solid rgba(238, 246, 241, 0.58);
   border-radius: 6px;
   background: var(--panel-soft);
@@ -309,25 +326,29 @@ button:disabled,
 
 .accordion {
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .accordion-item {
-  border: 2px solid rgba(238, 246, 241, 0.58);
-  border-radius: 6px;
-  background: var(--panel-soft);
-  overflow: hidden;
+  border: 0;
+  background: transparent;
+  overflow: visible;
 }
 
 .accordion-item summary {
-  min-height: 52px;
+  min-height: clamp(30px, 5vh, 50px);
   display: flex;
   align-items: center;
-  padding: 12px 14px;
+  padding: 8px clamp(28px, 10vw, 64px);
+  border: 3px solid var(--border);
+  border-radius: 6px;
   background: var(--panel-strong);
-  color: var(--cyan);
+  color: var(--text);
+  font-size: clamp(1rem, 3.4vw, 1.45rem);
+  line-height: 1;
   cursor: pointer;
   list-style: none;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
 }
 
 .accordion-item summary::-webkit-details-marker {
@@ -335,21 +356,21 @@ button:disabled,
 }
 
 .accordion-item summary::after {
-  content: "+";
-  margin-left: auto;
-  color: var(--orange);
+  content: "";
 }
 
 .accordion-item[open] summary::after {
-  content: "-";
+  content: "";
 }
 
 .accordion-item p {
   margin: 0;
-  padding: 14px;
-  border-top: 1px solid rgba(238, 246, 241, 0.18);
+  padding: clamp(12px, 2.5vh, 22px) clamp(14px, 3.5vw, 24px);
+  border-top: 0;
   color: var(--text);
-  line-height: 1.55;
+  font-size: clamp(1.15rem, 4.8vw, 2rem);
+  line-height: 1.5;
+  white-space: pre-line;
 }
 
 .stat-table {
@@ -372,7 +393,7 @@ button:disabled,
 }
 
 .stat-row {
-  min-height: clamp(64px, 8.5vh, 104px);
+  min-height: clamp(32px, 4.25vh, 57px);
   color: var(--text);
 }
 
@@ -387,7 +408,7 @@ button:disabled,
 }
 
 .statistics-page {
-  padding: clamp(18px, 5vh, 60px) 0 0;
+  padding: clamp(12px, 3vh, 40px) 0 0;
   background: transparent;
   border: 0;
 }
@@ -401,17 +422,24 @@ button:disabled,
   font-size: clamp(1rem, 3.2vw, 1.5rem);
 }
 
+.story-list {
+  display: grid;
+}
+
 .story-entry {
   display: grid;
-  gap: 8px;
   justify-items: center;
+  padding: 16px 16px 18px;
+  border-bottom: 2px solid rgba(242, 245, 242, 0.78);
   text-align: center;
 }
 
 .story-entry p {
   margin: 0;
-  max-width: 680px;
-  line-height: 1.55;
+  max-width: 760px;
+  color: var(--text);
+  font-size: clamp(0.98rem, 3vw, 1.35rem);
+  line-height: 1.5;
 }
 
 .legacy-list {
@@ -420,9 +448,9 @@ button:disabled,
 
 .legacy-entry {
   display: grid;
-  gap: 18px;
+  gap: 12px;
   justify-items: center;
-  padding: 18px 8px 22px;
+  padding: 14px 4px 16px;
   border-bottom: 2px solid rgba(242, 245, 242, 0.78);
   text-align: center;
 }
@@ -468,7 +496,7 @@ button:disabled,
 
 .menu-shell {
   display: grid;
-  gap: 7px;
+  gap: 5px;
   justify-items: center;
   position: relative;
   z-index: 2;
@@ -483,7 +511,7 @@ button:disabled,
 .menu-row {
   display: flex;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
 }
 
@@ -518,7 +546,7 @@ button:disabled,
   place-items: center;
   align-content: center;
   gap: clamp(12px, 4vh, 22px);
-  padding: clamp(12px, 3vh, 36px) 8px;
+  padding: clamp(10px, 2.5vh, 28px) 4px;
   text-align: center;
 }
 
@@ -560,8 +588,8 @@ button:disabled,
 
 @media (min-width: 760px) {
   .game-shell {
-    padding: 30px 40px 24px;
-    gap: 14px;
+    padding: 16px 20px 14px;
+    gap: 8px;
   }
 
   .menu-row {
