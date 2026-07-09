@@ -15,6 +15,11 @@
     "condition": { "stat": "firstFlowDownloadStarted", "gte": 1 }
   },
   {
+    "id": "first_download_complete",
+    "text": "The package opens without ceremony. One hundred and one lines settle into the run's source, not written by your hand but accepted by the machine as if they had always belonged there. The next reboot will inherit this downloaded scar.",
+    "condition": { "stat": "firstFlowDownloadComplete", "gte": 1 }
+  },
+  {
     "id": "research_opens",
     "text": "The first research node is not a discovery. It is a permission slip. The system allows you to name one of its habits, and the habit becomes easier to exploit.",
     "condition": { "stat": "researchBought", "gte": 1 }
