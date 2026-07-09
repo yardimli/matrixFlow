@@ -29,6 +29,20 @@
     "flowLevelBonus": 0.055,
     "holdTapIntervalMs": 145
   },
+  "upgradeTables": {
+    "tap": {
+      "baseStep": 8,
+      "upgradesPerTier": 4,
+      "baseIncome": 1,
+      "incomePerUpgrade": 1
+    },
+    "flow": {
+      "baseStep": 8,
+      "upgradesPerTier": 1,
+      "baseIncome": 1,
+      "incomePerUpgrade": 1
+    }
+  },
   "costs": {
     "tapBase": 10,
     "tapGrowth": 1.38,

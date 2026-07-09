@@ -35,6 +35,7 @@
   const FIRST_FLOW_DOWNLOAD_START_CYCLES = 1440;
   const DOWNLOAD_BYTES_PER_CYCLE = 4;
   const FIRST_FLOW_DOWNLOAD_REWARD_SOURCE = 101;
+  const CRASH_RUNNER_X = 72;
 
   let activePage = config.ui.defaultPage;
   let holding = false;
@@ -44,10 +45,13 @@
   let matrixUpgradeState = "";
   let storyOverlay = null;
   let storyQueue = [];
+  let crashScreen = null;
+  let activeCrash = null;
   let resetting = false;
 
   disableContextBehavior();
   createStoryOverlay();
+  createCrashScreen();
   bindMenu();
   document.addEventListener("pointerdown", showButtonPressFeedback, { capture: true });
   document.addEventListener("pointerdown", startScreenPulse, { passive: false, capture: true });
@@ -89,6 +93,7 @@
 
     state.lifetime.time += dt;
     state.total.time += dt;
+    maybeStartCrash();
 
     const flowGain = economy.getFlowRate() * dt;
     if (flowGain > 0) {
@@ -110,6 +115,7 @@
 
     matrix.setFlowing(state.flowLevel > 0);
     matrix.step(dt);
+    updateCrash(dt);
     unlockProgress();
     refreshMatrixUpgradeState();
     render(false);
@@ -128,7 +134,6 @@
     const sourceGain = economy.getSourceCodeRate() * dt;
     if (sourceGain > config.sourceCode.minimumGain) {
       state.sourceCode = finiteNumber(state.sourceCode + sourceGain);
-      state.totalSourceCode = finiteNumber(state.totalSourceCode + sourceGain);
       state.lifetime.sourceCode = finiteNumber(state.lifetime.sourceCode + sourceGain);
       state.total.sourceCode = finiteNumber(state.total.sourceCode + sourceGain);
     }
@@ -143,6 +148,7 @@
     const lifetimeCyclesBeforeGain = state.lifetime.cycles;
     economy.addCycles(cycleGain);
     processFirstFlowDownloadGain(cycleGain, lifetimeCyclesBeforeGain);
+    maybeStartCrash();
     matrix.pulse();
     refreshMatrixUpgradeState();
   }
@@ -157,12 +163,49 @@
     render();
   }
 
+  function buyMaxTapUpgrades() {
+    buyMaxUpgrades({
+      isUnlocked: economy.isTapUpgradeUnlocked,
+      getCost: economy.getTapCost,
+      apply: () => {
+        state.tapLevel += 1;
+        matrix.addDensity(config.matrix.upgradeDensityBoost);
+      }
+    });
+  }
+
   function buyFlowUpgrade() {
     const cost = economy.getFlowCost();
     if (D(state.cycles).lt(cost) || !economy.isFlowUnlocked()) return;
     state.cycles = D(state.cycles).minus(cost).toString();
     state.flowLevel += 1;
     matrix.addDensity(config.matrix.flowUpgradeDensityBoost);
+    pageDirty = true;
+    render();
+  }
+
+  function buyMaxFlowUpgrades() {
+    buyMaxUpgrades({
+      isUnlocked: economy.isFlowUnlocked,
+      getCost: economy.getFlowCost,
+      apply: () => {
+        state.flowLevel += 1;
+        matrix.addDensity(config.matrix.flowUpgradeDensityBoost);
+      }
+    });
+  }
+
+  function buyMaxUpgrades(upgrade) {
+    if (!economy.isResearchBought("max_buy") || !upgrade.isUnlocked()) return;
+    let bought = 0;
+    for (let guard = 0; guard < 10000; guard += 1) {
+      const cost = upgrade.getCost();
+      if (D(state.cycles).lt(cost)) break;
+      state.cycles = D(state.cycles).minus(cost).toString();
+      upgrade.apply();
+      bought += 1;
+    }
+    if (!bought) return;
     pageDirty = true;
     render();
   }
@@ -227,7 +270,6 @@
 
   function addSourceCode(lines) {
     state.sourceCode = finiteNumber(state.sourceCode + lines);
-    state.totalSourceCode = finiteNumber(state.totalSourceCode + lines);
     state.lifetime.sourceCode = finiteNumber(state.lifetime.sourceCode + lines);
     state.total.sourceCode = finiteNumber(state.total.sourceCode + lines);
   }
@@ -239,6 +281,113 @@
       bytes: 0,
       rewarded: false
     };
+  }
+
+  function resetCrashes() {
+    state.crashes.completed = 0;
+  }
+
+  function maybeStartCrash() {
+    if (activeCrash) return;
+    if (state.lifetime.time < getNextCrashTime()) return;
+    startCrash();
+  }
+
+  function getCrashIntervalSeconds() {
+    return 600;
+  }
+
+  function getNextCrashTime() {
+    return (state.crashes.completed + 1) * getCrashIntervalSeconds();
+  }
+
+  function getCrashReward() {
+    return finiteNumber(Math.floor(state.sourceCode * 0.05));
+  }
+
+  function getNextCrashObstacleX(crash = activeCrash) {
+    const speed = crash?.speed || 170;
+    const jumps = crash?.jumps || 0;
+    const gapSeconds = 0.85 + Math.random() * (1.8 + Math.min(1.4, jumps * 0.08));
+    const jumpSpace = Math.min(220, jumps * 8);
+    return 150 + speed * gapSeconds * 0.5 + jumpSpace * 0.5 + Math.random() * 90;
+  }
+
+  function startCrash(options = {}) {
+    const scheduled = options.scheduled !== false;
+    const crashNumber = state.crashes.completed + 1;
+    if (scheduled) state.crashes.completed = crashNumber;
+    activeCrash = {
+      countdown: 3,
+      countdownTimer: 0,
+      running: false,
+      reward: getCrashReward(),
+      runnerY: 0,
+      velocity: 0,
+      obstacleX: 340,
+      obstacleScored: false,
+      jumps: 0,
+      speed: 170 + Math.min(90, crashNumber * 4)
+    };
+    activeCrash.obstacleX = getNextCrashObstacleX(activeCrash);
+    stopHolding();
+    renderCrashScreen();
+  }
+
+  function updateCrash(dt) {
+    if (!activeCrash) return;
+    if (!activeCrash.running) {
+      activeCrash.countdownTimer += dt;
+      if (activeCrash.countdownTimer >= 1) {
+        activeCrash.countdownTimer = 0;
+        activeCrash.countdown -= 1;
+        if (activeCrash.countdown <= 0) activeCrash.running = true;
+      }
+      renderCrashScreen();
+      return;
+    }
+
+    activeCrash.velocity -= 1350 * dt;
+    activeCrash.runnerY = Math.max(0, activeCrash.runnerY + activeCrash.velocity * dt);
+    if (activeCrash.runnerY === 0 && activeCrash.velocity < 0) activeCrash.velocity = 0;
+
+    activeCrash.obstacleX -= activeCrash.speed * dt;
+    if (!activeCrash.obstacleScored && activeCrash.obstacleX < CRASH_RUNNER_X - 18) {
+      activeCrash.obstacleScored = true;
+      activeCrash.jumps += 1;
+      addSourceCode(activeCrash.reward);
+      activeCrash.speed *= 1.25;
+    }
+
+    if (isCrashCollision()) {
+      endCrash();
+      return;
+    }
+
+    if (activeCrash.obstacleX < -24) {
+      activeCrash.obstacleX = getNextCrashObstacleX();
+      activeCrash.obstacleScored = false;
+    }
+
+    renderCrashScreen();
+  }
+
+  function jumpCrashRunner() {
+    if (!activeCrash || !activeCrash.running || activeCrash.runnerY > 0) return;
+    activeCrash.velocity = 520;
+    renderCrashScreen();
+  }
+
+  function isCrashCollision() {
+    if (!activeCrash) return false;
+    const nearObstacle = activeCrash.obstacleX > CRASH_RUNNER_X - 18 && activeCrash.obstacleX < CRASH_RUNNER_X + 24;
+    return nearObstacle && activeCrash.runnerY < 34;
+  }
+
+  function endCrash() {
+    activeCrash = null;
+    crashScreen.classList.add("hidden");
+    store.saveState(state);
   }
 
   function buyResearch(id) {
@@ -258,6 +407,7 @@
     if (state.sourceCode < config.reboot.minimumSourceCode) return;
     state.reboots += 1;
     state.previousRunSourceCode = Math.max(1, state.sourceCode);
+    state.totalSourceCode = finiteNumber(state.totalSourceCode + state.sourceCode);
     state.cycles = "0";
     state.tapLevel = config.startingState.tapLevel;
     state.flowLevel = config.startingState.flowLevel;
@@ -265,6 +415,7 @@
     state.sourceCode = config.startingState.sourceCode;
     state.research = {};
     resetFirstFlowDownload();
+    resetCrashes();
     state.lifetime = store.freshStats();
     state.cpuMultiplier = economy.getCpuMultiplier();
     matrix.addDensity(config.matrix.rebootDensityBoost);
@@ -327,9 +478,59 @@
     showNextStory();
   }
 
+  function createCrashScreen() {
+    crashScreen = document.createElement("section");
+    crashScreen.className = "crash-screen hidden";
+    crashScreen.setAttribute("aria-label", "Crash recovery runner");
+    crashScreen.innerHTML = `
+      <div class="crash-game">
+        <div class="crash-title">SYSTEM TRACE LOST</div>
+        <div class="crash-countdown" id="crash-countdown"></div>
+        <div class="crash-reward" id="crash-reward"></div>
+        <div class="crash-track">
+          <div class="crash-ground"></div>
+          <div class="crash-runner" id="crash-runner"></div>
+          <div class="crash-obstacle" id="crash-obstacle"></div>
+        </div>
+        <div class="crash-jumps" id="crash-jumps"></div>
+      </div>
+    `;
+    crashScreen.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      jumpCrashRunner();
+    }, { passive: false });
+    crashScreen.addEventListener("touchstart", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      jumpCrashRunner();
+    }, { passive: false });
+    els.game.appendChild(crashScreen);
+  }
+
+  function renderCrashScreen() {
+    if (!activeCrash) return;
+    crashScreen.classList.remove("hidden");
+    const countdown = crashScreen.querySelector("#crash-countdown");
+    const reward = crashScreen.querySelector("#crash-reward");
+    const jumps = crashScreen.querySelector("#crash-jumps");
+    const track = crashScreen.querySelector(".crash-track");
+    const runner = crashScreen.querySelector("#crash-runner");
+    const obstacle = crashScreen.querySelector("#crash-obstacle");
+    const groundDuration = Math.max(0.04, 46 / Math.max(1, activeCrash.speed));
+    const trackDuration = Math.max(0.04, 28 / Math.max(1, activeCrash.speed));
+    countdown.textContent = activeCrash.running ? "" : String(activeCrash.countdown);
+    reward.textContent = `+${formatNumber(activeCrash.reward)} source / clean jump`;
+    jumps.textContent = `${formatNumber(activeCrash.jumps)} jumps`;
+    track.style.setProperty("--crash-ground-duration", `${groundDuration}s`);
+    track.style.setProperty("--crash-track-duration", `${trackDuration}s`);
+    runner.style.transform = `translateY(${-activeCrash.runnerY}px)`;
+    obstacle.style.transform = `translateX(${activeCrash.obstacleX}px)`;
+  }
+
   function render(updatePage = true) {
     if (activePage === "cycles" && !isCyclesPageUnlocked()) activePage = config.ui.defaultPage;
-    els.cycles.textContent = formatNumber(state.cycles, { shortenAt: 100000 });
+    els.cycles.textContent = formatNumber(state.cycles, { shortenAt: 100000, decimalsFromUnit: "M" });
     els.cores.textContent = formatNumber(state.cores);
     els.pageName.textContent = activePage;
     updateMenuAvailability();
@@ -368,7 +569,9 @@
 
   function bindPageEvents() {
     document.getElementById("tap-upgrade")?.addEventListener("click", buyTapUpgrade);
+    document.getElementById("tap-upgrade-max")?.addEventListener("click", buyMaxTapUpgrades);
     document.getElementById("flow-upgrade")?.addEventListener("click", buyFlowUpgrade);
+    document.getElementById("flow-upgrade-max")?.addEventListener("click", buyMaxFlowUpgrades);
     document.querySelectorAll("[data-research-id]").forEach((button) => {
       button.addEventListener("click", () => buyResearch(button.dataset.researchId));
     });
@@ -397,6 +600,9 @@
       clearInterval(saveTimer);
       store.clearSave();
       location.reload();
+    });
+    document.getElementById("start-crash")?.addEventListener("click", () => {
+      if (!activeCrash) startCrash({ scheduled: false });
     });
     document.querySelectorAll("[data-dev-multiplier]").forEach((button) => {
       button.addEventListener("click", () => {
@@ -478,12 +684,24 @@
 
   function startScreenPulse(event) {
     if (event.button !== undefined && event.button !== 0) return;
+    if (activeCrash) {
+      event.preventDefault();
+      event.stopPropagation();
+      jumpCrashDino();
+      return;
+    }
     startPulseFromEvent(event, event.clientX, event.clientY);
   }
 
   function startTouchPulse(event) {
     const touch = event.changedTouches?.[0];
     if (!touch) return;
+    if (activeCrash) {
+      event.preventDefault();
+      event.stopPropagation();
+      jumpCrashDino();
+      return;
+    }
     startPulseFromEvent(event, touch.clientX, touch.clientY);
   }
 
@@ -500,6 +718,7 @@
   function isPulseTarget(event, x, y) {
     const target = event.target;
     if (!(target instanceof Element)) return false;
+    if (isBlockedPulseElement(target)) return false;
 
     const path = event.composedPath?.() || [];
     if (path.some((node) => node instanceof Element && isBlockedPulseElement(node))) return false;

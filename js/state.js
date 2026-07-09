@@ -25,6 +25,12 @@
       };
     }
 
+    function freshCrashes() {
+      return {
+        completed: 0
+      };
+    }
+
     function freshState() {
       return {
         version: config.version,
@@ -37,10 +43,12 @@
         cpuMultiplier: config.startingState.cpuMultiplier,
         reboots: config.startingState.reboots,
         previousRunSourceCode: config.startingState.previousRunSourceCode,
+        sourceMemoryMigrated: true,
         research: {},
         unlockedStories: {},
         legacies: {},
         downloads: freshDownloads(),
+        crashes: freshCrashes(),
         lifetime: freshStats(),
         total: freshStats()
       };
@@ -52,6 +60,7 @@
       next.legacies ||= {};
       next.downloads = { ...freshDownloads(), ...(next.downloads || {}) };
       next.downloads.firstFlow = { ...freshDownloads().firstFlow, ...(next.downloads.firstFlow || {}) };
+      next.crashes = { ...freshCrashes(), ...(next.crashes || {}) };
       next.lifetime = { ...freshStats(), ...(next.lifetime || {}) };
       next.total = { ...freshStats(), ...(next.total || {}) };
       next.version = config.version;
@@ -63,6 +72,10 @@
       next.cores = Math.max(config.startingState.cores, finiteNumber(next.cores, config.startingState.cores));
       next.sourceCode = finiteNumber(next.sourceCode, config.startingState.sourceCode);
       next.totalSourceCode = finiteNumber(next.totalSourceCode, config.startingState.totalSourceCode);
+      if (next.sourceMemoryMigrated !== true) {
+        next.totalSourceCode = Math.max(config.startingState.totalSourceCode, next.totalSourceCode - next.sourceCode);
+        next.sourceMemoryMigrated = true;
+      }
       next.cpuMultiplier = Math.max(1, finiteNumber(next.cpuMultiplier, config.startingState.cpuMultiplier));
       next.reboots = finiteNumber(next.reboots, config.startingState.reboots);
       next.previousRunSourceCode = Math.max(1, finiteNumber(next.previousRunSourceCode, 1));
@@ -70,6 +83,7 @@
       next.downloads.firstFlow.started = Boolean(next.downloads.firstFlow.started);
       next.downloads.firstFlow.complete = Boolean(next.downloads.firstFlow.complete);
       next.downloads.firstFlow.rewarded = Boolean(next.downloads.firstFlow.rewarded);
+      next.crashes.completed = finiteNumber(next.crashes.completed);
       next.lifetime.time = finiteNumber(next.lifetime.time);
       next.lifetime.taps = finiteNumber(next.lifetime.taps);
       next.lifetime.sourceCode = finiteNumber(next.lifetime.sourceCode);
@@ -89,7 +103,11 @@
       const fresh = freshState();
       try {
         const saved = JSON.parse(localStorage.getItem(config.save.key));
-        if (saved && saved.version === config.version) return normalizeState({ ...fresh, ...saved });
+        if (saved && saved.version === config.version) {
+          const merged = { ...fresh, ...saved };
+          if (!Object.prototype.hasOwnProperty.call(saved, "sourceMemoryMigrated")) merged.sourceMemoryMigrated = false;
+          return normalizeState(merged);
+        }
       } catch {
         // Use fresh state.
       }

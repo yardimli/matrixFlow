@@ -4,20 +4,22 @@
   function createPages(context) {
     const { state, researchData, storyData, legacyData, helpData, economy, getDevClickMultiplier } = context;
     const FIRST_FLOW_DOWNLOAD_BYTES = 1474560;
+    const WHOLE_EXPONENTIAL = { scientificDecimals: 0 };
 
     function renderMatrixPage() {
       const tapUnlocked = economy.isTapUpgradeUnlocked();
       const flowUnlocked = economy.isFlowUnlocked();
       const tapCost = economy.getTapCost();
       const flowCost = economy.getFlowCost();
+      const maxBuyUnlocked = economy.isResearchBought("max_buy");
       return `
         <div class="matrix-page" id="matrix-page">
           <section class="download-stage" aria-label="Mini upgrade download">
             ${renderFirstFlowDownload()}
           </section>
           <section class="upgrade-stack" aria-label="Upgrades">
-            ${renderUpgrade("tap-upgrade", tapUnlocked, D(state.cycles).gte(tapCost), "cycles / tap", `+${formatNumber(economy.getCyclesPerTap())} cycles / tap`, `level ${state.tapLevel}`, `cost ${formatNumber(tapCost, { shortenAt: 100000 })}`)}
-            ${renderUpgrade("flow-upgrade", flowUnlocked, D(state.cycles).gte(flowCost), "flow", `<span id="live-flow">${formatNumber(economy.getFlowRate())} cycles / second</span>`, `level ${state.flowLevel}`, `cost ${formatNumber(flowCost, { shortenAt: 100000 })}`)}
+            ${renderUpgrade("tap-upgrade", tapUnlocked, D(state.cycles).gte(tapCost), maxBuyUnlocked, "cycles / tap", `+${formatNumber(economy.getCyclesPerTap())} cycles / tap`, `level ${state.tapLevel}`, `cost ${formatNumber(tapCost, { shortenAt: 100000 })}`)}
+            ${renderUpgrade("flow-upgrade", flowUnlocked, D(state.cycles).gte(flowCost), maxBuyUnlocked, "flow", `<span id="live-flow">${formatNumber(economy.getFlowRate())} cycles / second</span>`, `level ${state.flowLevel}`, `cost ${formatNumber(flowCost, { shortenAt: 100000 })}`)}
           </section>
         </div>
       `;
@@ -52,13 +54,17 @@
       return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
     }
 
-    function renderUpgrade(id, unlocked, canAfford, title, effect, level, cost) {
+    function renderUpgrade(id, unlocked, canAfford, maxBuyUnlocked, title, effect, level, cost) {
       if (!unlocked) return "";
+      const maxId = `${id}-max`;
       return `
-        <button class="upgrade ${canAfford ? "can-afford" : ""}" id="${id}" type="button" ${canAfford ? "" : "disabled"}>
-          <span><strong>${title}</strong><small>${effect}</small></span>
-          <span class="meta"><small>${level}</small><small>${cost}</small></span>
-        </button>
+        <div class="upgrade-row ${maxBuyUnlocked ? "has-max" : ""}">
+          <button class="upgrade ${canAfford ? "can-afford" : ""}" id="${id}" type="button" ${canAfford ? "" : "disabled"}>
+            <span><strong>${title}</strong><small>${effect}</small></span>
+            <span class="meta"><small>${level}</small><small>${cost}</small></span>
+          </button>
+          ${maxBuyUnlocked ? `<button class="upgrade-max ${canAfford ? "can-afford" : ""}" id="${maxId}" type="button" ${canAfford ? "" : "disabled"}>max</button>` : ""}
+        </div>
       `;
     }
 
@@ -87,7 +93,7 @@
       return `
         <button class="card actionable ${canAfford ? "can-afford" : ""}" data-research-id="${item.id}" type="button" ${canAfford ? "" : "disabled"}>
           <span class="research-copy"><strong>${item.name}</strong><small>${item.description}</small></span>
-          <span class="research-card-footer"><small>${effectText(item.effects)}</small><small>cost ${formatNumber(cost)}</small></span>
+          <span class="research-card-footer"><small>${effectText(item.effects)}</small><small>cost ${formatNumber(cost, WHOLE_EXPONENTIAL)}</small></span>
         </button>
       `;
     }
@@ -97,7 +103,7 @@
       return `
         <article class="card can-afford">
           <span class="research-copy"><strong>${item.name}</strong><small>${item.description}</small></span>
-          <span class="research-card-footer"><small>${effectText(item.effects)}</small><small>cost ${formatNumber(cost)}</small></span>
+          <span class="research-card-footer"><small>${effectText(item.effects)}</small><small>cost ${formatNumber(cost, WHOLE_EXPONENTIAL)}</small></span>
         </article>
       `;
     }
@@ -105,15 +111,17 @@
     function renderCyclesPage() {
       const difficulty = getDifficultyLabel();
       const currentSource = formatNumber(state.totalSourceCode);
-      const currentCpu = formatNumber(state.cpuMultiplier);
+      const currentCpuValue = economy.getCpuMultiplierForSource(state.totalSourceCode);
+      const nextCpuValue = economy.getCpuMultiplierForSource(state.totalSourceCode + state.sourceCode);
+      const currentCpu = formatNumber(currentCpuValue);
       const runSource = formatNumber(state.sourceCode);
-      const nextCpu = formatNumber(economy.getCpuMultiplier());
+      const runCpuGain = formatNumber(Math.round(Math.max(0, nextCpuValue - currentCpuValue)));
       const sourceRate = formatNumber(economy.getSourceCodeRate() * 60);
       return `
         <section class="reboot-page">
           <p>Abandon this execution, record the fragments that survived it, and let another process wake with your errors already compiled.</p>
-          <p>The source contains <span>${currentSource}</span> lines, multiplying cycle gain by <span>${currentCpu}</span>.</p>
-          <p>If you reboot now, you can add <span>${runSource}</span> lines to the source, raising the CPU multiplier toward <span>${nextCpu}</span>.</p>
+          <p>Memory contains <span>${currentSource}</span> source lines, multiplying this run's cycle gain by <span>${currentCpu}</span>.</p>
+          <p>If you reboot now, this run adds <span>${runSource}</span> lines to memory, increasing the next CPU multiplier by <span>${runCpuGain}</span>.</p>
           <p class="reboot-small">writing <span>${sourceRate}</span> lines each minute - difficulty ${difficulty}</p>
           <button class="reboot-button" id="reboot-button" type="button" ${state.sourceCode >= 1 ? "" : "disabled"}>reboot</button>
         </section>
@@ -132,17 +140,28 @@
     }
 
     function renderStatisticsPage() {
+      const stats = economy.getRuntimeBreakdown();
       return `
-        <section class="statistics-page stat-table">
-          <div class="stat-header"><span></span><span>lifetime</span><span>total</span></div>
-          ${statRow("time", formatTime(state.lifetime.time), formatTime(state.total.time))}
-          ${statRow("taps", formatNumber(state.lifetime.taps), formatNumber(state.total.taps))}
-          ${statRow("cycles", formatNumber(state.lifetime.cycles), formatNumber(state.total.cycles))}
-          ${statRow("source code", formatNumber(state.lifetime.sourceCode), formatNumber(state.total.sourceCode))}
-          ${statRow("cores", formatNumber(state.lifetime.coresPeak), formatNumber(state.total.coresPeak))}
-          ${statRow("flow", formatNumber(state.lifetime.flowPeak), formatNumber(state.total.flowPeak))}
-          ${statRow("legacies", "", formatNumber(Object.keys(state.legacies).length))}
-          ${statRow("reboots", "", formatNumber(state.reboots))}
+        <section class="statistics-page">
+          <div class="stat-table">
+            <div class="stat-header"><span></span><span>lifetime</span><span>total</span></div>
+            ${statRow("time", formatTime(state.lifetime.time), formatTime(state.total.time))}
+            ${statRow("taps", formatNumber(state.lifetime.taps, WHOLE_EXPONENTIAL), formatNumber(state.total.taps, WHOLE_EXPONENTIAL))}
+            ${statRow("cycles", formatNumber(state.lifetime.cycles, WHOLE_EXPONENTIAL), formatNumber(state.total.cycles, WHOLE_EXPONENTIAL))}
+            ${statRow("source code", formatNumber(state.lifetime.sourceCode, WHOLE_EXPONENTIAL), formatNumber(state.total.sourceCode, WHOLE_EXPONENTIAL))}
+            ${statRow("cores", formatNumber(state.lifetime.coresPeak, WHOLE_EXPONENTIAL), formatNumber(state.total.coresPeak, WHOLE_EXPONENTIAL))}
+            ${statRow("flow", formatNumber(state.lifetime.flowPeak, WHOLE_EXPONENTIAL), formatNumber(state.total.flowPeak, WHOLE_EXPONENTIAL))}
+            ${statRow("cpu", `${formatNumber(stats.cpuMultiplier, WHOLE_EXPONENTIAL)}x`, `${formatNumber(stats.cycleMultiplier, WHOLE_EXPONENTIAL)}x`)}
+            ${statRow("cpu cores", formatNumber(state.cores, WHOLE_EXPONENTIAL), `${formatNumber(stats.coreMultiplier, WHOLE_EXPONENTIAL)}x`)}
+            ${statRow("memory cpu", formatNumber(state.totalSourceCode, WHOLE_EXPONENTIAL), `${formatNumber(stats.memoryMultiplier, WHOLE_EXPONENTIAL)}x`)}
+            ${statRow("legacies", "", formatNumber(Object.keys(state.legacies).length, WHOLE_EXPONENTIAL))}
+            ${statRow("reboots", "", formatNumber(state.reboots, WHOLE_EXPONENTIAL))}
+          </div>
+          <div class="stat-calculations">
+            ${calcRow("cycles", `tap ${formatNumber(stats.tapBase, WHOLE_EXPONENTIAL)} x cpu ${formatNumber(stats.cycleMultiplier, WHOLE_EXPONENTIAL)} x tap research ${formatNumber(stats.tapResearch, WHOLE_EXPONENTIAL)} = ${formatNumber(stats.cyclesPerTap, WHOLE_EXPONENTIAL)} / tap; flow ${formatNumber(stats.flowBase, WHOLE_EXPONENTIAL)} x cpu ${formatNumber(stats.cycleMultiplier, WHOLE_EXPONENTIAL)} x flow research ${formatNumber(stats.flowResearch, WHOLE_EXPONENTIAL)}`, `+${formatNumber(stats.flowGain8, WHOLE_EXPONENTIAL)} / 8s`)}
+            ${calcRow("cores", `target ${formatNumber(stats.coreTarget, WHOLE_EXPONENTIAL)} from cycles, tap level, flow level, core research ${formatNumber(stats.coreResearch, WHOLE_EXPONENTIAL)}`, `+${formatNumber(stats.coreGain8, WHOLE_EXPONENTIAL)} / 8s`)}
+            ${calcRow("source", `productive mass from cycles, cores, flow / difficulty ${formatNumber(stats.sourceDifficulty, WHOLE_EXPONENTIAL)} x source research ${formatNumber(stats.sourceResearch, WHOLE_EXPONENTIAL)}`, `+${formatNumber(stats.sourceGain8, WHOLE_EXPONENTIAL)} / 8s`)}
+          </div>
         </section>
       `;
     }
@@ -183,6 +202,7 @@
           <p>Matrix Flow is a small vanilla HTML, CSS, and JavaScript incremental game about teaching a dark system to reveal its own source.</p>
           <p class="muted">Save data is local to this browser.</p>
           <button class="reboot-button danger" id="reset-save" type="button">reset save</button>
+          <button class="reboot-button" id="start-crash" type="button">start crash game</button>
           <div class="dev-multiplier-row" aria-label="Development tap multiplier">
             ${[1, 10, 100, 1000].map(renderDevMultiplier).join("")}
           </div>
@@ -203,6 +223,10 @@
       return `<div class="stat-row"><span>${label}</span><strong>${lifetime}</strong><strong>${total}</strong></div>`;
     }
 
+    function calcRow(label, formula, gain) {
+      return `<div class="calc-row"><span>${label}</span><small>${formula}</small><strong>${gain}</strong></div>`;
+    }
+
     function legacyEffectText(legacy) {
       return economy.getLegacyEffects(legacy)
         .map(({ key, value, scaling }) => {
@@ -214,7 +238,9 @@
 
     function effectText(effects = {}) {
       return Object.entries(effects)
-        .map(([key, value]) => `${effectLabel(key)} ${value >= 0 ? "+" : ""}${Math.round(value * 100)}%`)
+        .map(([key, value]) => key === "maxBuy"
+          ? "max buy unlocked"
+          : `${effectLabel(key)} ${value >= 0 ? "+" : ""}${Math.round(value * 100)}%`)
         .join(", ");
     }
 

@@ -49,13 +49,51 @@
         (1 + state.totalSourceCode * config.core.sourceMultiplierPerLine));
     }
 
+    function getRuntimeBreakdown() {
+      const cpuMultiplier = Math.max(1, state.cpuMultiplier);
+      const coreMultiplier = 1 + state.cores * config.core.multiplierPerCore;
+      const memoryMultiplier = 1 + state.totalSourceCode * config.core.sourceMultiplierPerLine;
+      const cycleMultiplier = getCycleMultiplier();
+      const tapBase = getUpgradeIncome(config.upgradeTables?.tap, state.tapLevel - 1, true);
+      const flowBase = getUpgradeIncome(config.upgradeTables?.flow, state.flowLevel, false);
+      const tapResearch = 1 + effectSum("tapMultiplier");
+      const flowResearch = 1 + effectSum("flowMultiplier");
+      const coreResearch = 1 + effectSum("coreMultiplier");
+      const sourceResearch = 1 + effectSum("sourceMultiplier");
+      const flowRate = getFlowRate();
+      const cyclesPerTap = getCyclesPerTap();
+      const coreTarget = getCoreTarget();
+      const coreGain8 = Math.max(0, coreTarget - state.cores) * Math.min(1, 8 * config.core.convergenceRate);
+      const sourceRate = getSourceCodeRate();
+      return {
+        cpuMultiplier,
+        coreMultiplier,
+        memoryMultiplier,
+        cycleMultiplier,
+        tapBase,
+        flowBase,
+        tapResearch,
+        flowResearch,
+        coreResearch,
+        sourceResearch,
+        flowRate,
+        cyclesPerTap,
+        flowGain8: flowRate * 8,
+        coreTarget,
+        coreGain8,
+        sourceRate,
+        sourceGain8: sourceRate * 8,
+        sourceDifficulty: getSourceDifficulty()
+      };
+    }
+
     function getCyclesPerTap() {
-      const base = config.production.baseCyclesPerTap + (state.tapLevel - 1) * config.production.tapLevelBonus;
+      const base = getUpgradeIncome(config.upgradeTables?.tap, state.tapLevel - 1, true);
       return finiteNumber(base * getCycleMultiplier() * (1 + effectSum("tapMultiplier")));
     }
 
     function getFlowRate() {
-      const base = state.flowLevel * config.production.flowCyclesPerSecond * (1 + state.flowLevel * config.production.flowLevelBonus);
+      const base = getUpgradeIncome(config.upgradeTables?.flow, state.flowLevel, false);
       return finiteNumber(base * getCycleMultiplier() * (1 + effectSum("flowMultiplier")));
     }
 
@@ -63,7 +101,7 @@
       const researchBoost = 1 + effectSum("coreMultiplier");
       const tapPart = Math.pow(Math.max(1, state.tapLevel), config.core.tapLevelPower);
       const flowPart = Math.pow(Math.max(1, state.flowLevel + 1), config.core.flowLevelPower);
-      const cyclePart = Math.sqrt(Math.max(0, decimalToNumber(state.lifetime.cycles)) / config.core.baseDivisor);
+      const cyclePart = Math.log1p(Math.max(0, decimalToNumber(state.lifetime.cycles)) / config.core.baseDivisor) / Math.LN2;
       return finiteNumber(cyclePart * (tapPart + flowPart) * config.core.targetScale * researchBoost);
     }
 
@@ -84,22 +122,49 @@
     }
 
     function getCpuMultiplier() {
-      const fromSource = Math.max(1, 1 + state.totalSourceCode / config.sourceCode.cpuDivisor);
+      return getCpuMultiplierForSource(state.totalSourceCode);
+    }
+
+    function getCpuMultiplierForSource(sourceCode) {
+      const fromSource = Math.max(1, 1 + sourceCode / config.sourceCode.cpuDivisor);
       return finiteNumber(fromSource * (1 + effectSum("cpuMultiplier")), 1);
     }
 
     function getTapCost() {
-      return D(config.costs.tapBase)
-        .times(D(config.costs.tapGrowth).pow(state.tapLevel - 1))
-        .times(getCostMultiplier("tapCostMultiplier"))
-        .floor();
+      return getDiscountedUpgradeCost(getUpgradeTableCost(state.tapLevel, config.upgradeTables?.tap), "tapCostMultiplier");
     }
 
     function getFlowCost() {
-      return D(config.costs.flowBase)
-        .times(D(config.costs.flowGrowth).pow(state.flowLevel))
-        .times(getCostMultiplier("flowCostMultiplier"))
-        .floor();
+      return getDiscountedUpgradeCost(getUpgradeTableCost(state.flowLevel + 1, config.upgradeTables?.flow), "flowCostMultiplier");
+    }
+
+    function getDiscountedUpgradeCost(cost, key) {
+      const discounted = cost.times(getCostMultiplier(key)).floor();
+      return discounted.lt(1) ? D(1) : discounted;
+    }
+
+    function getUpgradeTableCost(targetLevel, table = {}) {
+      const level = Math.max(1, Math.floor(finiteNumber(targetLevel, 1)));
+      const upgradesPerTier = Math.max(1, Math.floor(finiteNumber(table.upgradesPerTier, 8)));
+      const baseStep = D(table.baseStep || 8);
+      const fullTiers = Math.floor(level / upgradesPerTier);
+      const remainder = level % upgradesPerTier;
+      let total = D(0);
+      if (fullTiers > 0) {
+        total = total.plus(baseStep.times(upgradesPerTier).times(D(2).pow(fullTiers).minus(1)));
+      }
+      if (remainder > 0) {
+        total = total.plus(baseStep.times(D(2).pow(fullTiers)).times(remainder));
+      }
+      return total.round();
+    }
+
+    function getUpgradeIncome(table = {}, upgradesOwned, includeBaseWithoutUpgrades) {
+      const owned = Math.max(0, Math.floor(finiteNumber(upgradesOwned)));
+      const baseIncome = finiteNumber(table.baseIncome, 1);
+      const incomePerUpgrade = finiteNumber(table.incomePerUpgrade, 1);
+      if (owned <= 0 && !includeBaseWithoutUpgrades) return 0;
+      return finiteNumber(baseIncome + owned * incomePerUpgrade);
     }
 
     function getCostMultiplier(key) {
@@ -160,12 +225,14 @@
       effectSum,
       getLegacyEffects,
       getCycleMultiplier,
+      getRuntimeBreakdown,
       getCyclesPerTap,
       getFlowRate,
       getCoreTarget,
       getSourceDifficulty,
       getSourceCodeRate,
       getCpuMultiplier,
+      getCpuMultiplierForSource,
       getTapCost,
       getFlowCost,
       getResearchCost,
