@@ -40,6 +40,23 @@ button {
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   -webkit-user-select: none;
+  transition: transform 90ms ease, filter 90ms ease, box-shadow 90ms ease, background-color 90ms ease, border-color 90ms ease;
+}
+
+button:not(:disabled):active,
+button:not(:disabled).button-pressed {
+  transform: translateY(1px) scale(0.985);
+  filter: brightness(1.35) saturate(1.15);
+  box-shadow: 0 0 22px rgba(232, 255, 239, 0.28), inset 0 0 0 2px rgba(232, 255, 239, 0.32);
+}
+
+button:not(:disabled).can-afford:active,
+button:not(:disabled).can-afford.button-pressed,
+.menu-button.active:not(:disabled):active,
+.menu-button.active:not(:disabled).button-pressed,
+.subtab.active:not(:disabled):active,
+.subtab.active:not(:disabled).button-pressed {
+  box-shadow: 0 0 24px rgba(0, 216, 255, 0.6), inset 0 0 0 2px rgba(232, 255, 239, 0.42);
 }
 
 #matrix {
@@ -127,34 +144,64 @@ button {
   min-height: 100%;
   display: grid;
   grid-template-rows: 1fr auto;
-  align-items: center;
+  align-items: stretch;
   gap: 10px;
 }
 
-.tap-zone {
-  min-height: 32vh;
+.download-stage {
+  min-height: 0;
   display: grid;
   place-items: center;
-  align-content: center;
-  gap: 16px;
-  border: 0;
-  background: transparent;
-  color: var(--text);
-  cursor: pointer;
+  padding: 6px 0;
 }
 
-.tap-readout {
+.download-panel {
+  width: min(280px, 74vw);
+  display: grid;
+  justify-items: start;
+  gap: 8px;
   color: var(--cyan);
-  font-size: clamp(3rem, 17vw, 9rem);
-  line-height: 0.95;
   text-shadow: var(--shadow-cyan);
 }
 
-.tap-label {
-  max-width: 620px;
-  color: var(--muted);
-  font-size: clamp(0.82rem, 2.7vw, 1.1rem);
-  text-align: center;
+.download-label {
+  min-height: 1.2em;
+  justify-self: center;
+  font-size: clamp(1rem, 4vw, 1.45rem);
+  letter-spacing: 0;
+}
+
+.download-bar {
+  position: relative;
+  width: 100%;
+  height: clamp(18px, 4.2vw, 28px);
+  overflow: hidden;
+  border: 1px solid rgba(232, 255, 239, 0.32);
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(242, 245, 242, 0.45) 0 2px,
+      transparent 2px 5px
+    );
+  box-shadow: 0 0 16px rgba(0, 216, 255, 0.18);
+}
+
+.download-bar-fill {
+  height: 100%;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 255, 238, 0.96) 0 2px,
+      rgba(0, 255, 238, 0.96) 2px 3px,
+      transparent 3px 5px
+    );
+  box-shadow: 0 0 18px rgba(0, 255, 238, 0.72);
+}
+
+.download-percent {
+  min-height: 1.1em;
+  font-size: clamp(1.15rem, 5vw, 1.8rem);
+  line-height: 1;
 }
 
 .upgrade-stack,
@@ -442,6 +489,43 @@ button:disabled,
   line-height: 1.5;
 }
 
+.story-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: max(18px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+  background: rgba(7, 9, 9, 0.96);
+  text-align: center;
+}
+
+.story-overlay-content {
+  width: min(100%, 520px);
+  display: grid;
+  justify-items: center;
+  gap: clamp(22px, 6vh, 44px);
+}
+
+.story-overlay p {
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(1.1rem, 4.5vw, 2rem);
+  line-height: 1.5;
+  text-shadow: 0 0 12px rgba(242, 245, 242, 0.2);
+}
+
+.story-continue {
+  min-width: 160px;
+  min-height: 54px;
+  border: 2px solid var(--cyan);
+  border-radius: 6px;
+  background: rgba(0, 216, 255, 0.12);
+  color: var(--cyan);
+  cursor: pointer;
+  box-shadow: var(--shadow-cyan), inset 0 0 0 1px rgba(0, 216, 255, 0.16);
+}
+
 .legacy-list {
   display: grid;
 }
@@ -602,6 +686,29 @@ button:disabled,
 
 .about-page .reboot-button {
   margin-top: 4px;
+}
+
+.dev-multiplier-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  width: min(100%, 420px);
+}
+
+.dev-multiplier {
+  min-height: 44px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel-strong);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.dev-multiplier.active {
+  color: var(--cyan);
+  border-color: var(--cyan);
+  background: rgba(0, 216, 255, 0.12);
+  box-shadow: var(--shadow-cyan);
 }
 
 .danger {

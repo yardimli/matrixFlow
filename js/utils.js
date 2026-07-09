@@ -1,6 +1,9 @@
 (function () {
   window.MF = window.MF || {};
 
+  const MAX_FINITE_NUMBER = 1e100;
+  const MAX_DECIMAL_STRING = "1e100";
+
   async function loadJson(path) {
     const response = await fetch(path, { cache: "no-store" });
     if (!response.ok) throw new Error(`Unable to load ${path}`);
@@ -13,19 +16,37 @@
 
   function decimalToNumber(value) {
     const number = D(value).toNumber();
-    return Number.isFinite(number) ? number : Number.MAX_VALUE;
+    if (Number.isNaN(number)) return 0;
+    if (!Number.isFinite(number)) return MAX_FINITE_NUMBER;
+    return Math.min(Math.max(0, number), MAX_FINITE_NUMBER);
   }
 
-  function formatNumber(value) {
+  function finiteNumber(value, fallback = 0, max = MAX_FINITE_NUMBER) {
+    const number = Number(value);
+    if (Number.isNaN(number)) return fallback;
+    if (!Number.isFinite(number)) return Math.sign(number || 1) * max;
+    return Math.min(Math.max(0, number), max);
+  }
+
+  function finiteDecimalString(value, fallback = "0", max = null) {
+    const raw = String(value ?? "");
     const decimal = D(value);
-    if (!Decimal.isFinite(decimal)) return decimal.toString();
+    if (!Decimal.isFinite(decimal)) return /inf/i.test(raw) ? (max || MAX_DECIMAL_STRING) : fallback;
+    if (decimal.lt(0)) return fallback;
+    return max && decimal.gt(max) ? max : decimal.toString();
+  }
+
+  function formatNumber(value, options = {}) {
+    const shortenAt = options.shortenAt ?? 1000;
+    let decimal = D(value);
+    if (!Decimal.isFinite(decimal)) decimal = D(finiteDecimalString(value));
     if (decimal.gte("1e8")) {
       if (decimal.layer > 1) return decimal.toString().replace(/\.\d+/g, "");
       return `${Math.floor(decimal.mantissa)}e${decimal.exponent}`;
     }
 
     const number = Math.floor(Math.max(0, decimal.toNumber() || 0));
-    if (number < 1000) {
+    if (number <= shortenAt) {
       return String(number);
     }
 
@@ -55,5 +76,15 @@
     document.addEventListener("dragstart", (event) => event.preventDefault());
   }
 
-  window.MF.utils = { loadJson, D, decimalToNumber, formatNumber, formatTime, disableContextBehavior };
+  window.MF.utils = {
+    loadJson,
+    D,
+    MAX_FINITE_NUMBER,
+    decimalToNumber,
+    finiteNumber,
+    finiteDecimalString,
+    formatNumber,
+    formatTime,
+    disableContextBehavior
+  };
 })();

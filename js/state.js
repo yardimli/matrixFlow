@@ -1,5 +1,5 @@
 (function () {
-  const { D } = window.MF.utils;
+  const { finiteNumber, finiteDecimalString } = window.MF.utils;
 
   function createStateStore(config) {
     function freshStats() {
@@ -11,6 +11,17 @@
         coresPeak: 0,
         flowPeak: 0,
         researchBought: 0
+      };
+    }
+
+    function freshDownloads() {
+      return {
+        firstFlow: {
+          started: false,
+          complete: false,
+          bytes: 0,
+          rewarded: false
+        }
       };
     }
 
@@ -29,6 +40,7 @@
         research: {},
         unlockedStories: {},
         legacies: {},
+        downloads: freshDownloads(),
         lifetime: freshStats(),
         total: freshStats()
       };
@@ -38,13 +50,38 @@
       next.research ||= {};
       next.unlockedStories ||= {};
       next.legacies ||= {};
+      next.downloads = { ...freshDownloads(), ...(next.downloads || {}) };
+      next.downloads.firstFlow = { ...freshDownloads().firstFlow, ...(next.downloads.firstFlow || {}) };
       next.lifetime = { ...freshStats(), ...(next.lifetime || {}) };
       next.total = { ...freshStats(), ...(next.total || {}) };
       next.version = config.version;
-      next.cycles = D(next.cycles).toString();
-      next.lifetime.cycles = D(next.lifetime.cycles).toString();
-      next.total.cycles = D(next.total.cycles).toString();
-      next.previousRunSourceCode = Math.max(1, Number(next.previousRunSourceCode || 1));
+      next.cycles = finiteDecimalString(next.cycles);
+      next.lifetime.cycles = finiteDecimalString(next.lifetime.cycles);
+      next.total.cycles = finiteDecimalString(next.total.cycles);
+      next.tapLevel = finiteNumber(next.tapLevel, config.startingState.tapLevel);
+      next.flowLevel = finiteNumber(next.flowLevel, config.startingState.flowLevel);
+      next.cores = Math.max(config.startingState.cores, finiteNumber(next.cores, config.startingState.cores));
+      next.sourceCode = finiteNumber(next.sourceCode, config.startingState.sourceCode);
+      next.totalSourceCode = finiteNumber(next.totalSourceCode, config.startingState.totalSourceCode);
+      next.cpuMultiplier = Math.max(1, finiteNumber(next.cpuMultiplier, config.startingState.cpuMultiplier));
+      next.reboots = finiteNumber(next.reboots, config.startingState.reboots);
+      next.previousRunSourceCode = Math.max(1, finiteNumber(next.previousRunSourceCode, 1));
+      next.downloads.firstFlow.bytes = finiteNumber(next.downloads.firstFlow.bytes);
+      next.downloads.firstFlow.started = Boolean(next.downloads.firstFlow.started);
+      next.downloads.firstFlow.complete = Boolean(next.downloads.firstFlow.complete);
+      next.downloads.firstFlow.rewarded = Boolean(next.downloads.firstFlow.rewarded);
+      next.lifetime.time = finiteNumber(next.lifetime.time);
+      next.lifetime.taps = finiteNumber(next.lifetime.taps);
+      next.lifetime.sourceCode = finiteNumber(next.lifetime.sourceCode);
+      next.lifetime.coresPeak = finiteNumber(next.lifetime.coresPeak);
+      next.lifetime.flowPeak = finiteNumber(next.lifetime.flowPeak);
+      next.lifetime.researchBought = finiteNumber(next.lifetime.researchBought);
+      next.total.time = finiteNumber(next.total.time);
+      next.total.taps = finiteNumber(next.total.taps);
+      next.total.sourceCode = finiteNumber(next.total.sourceCode);
+      next.total.coresPeak = finiteNumber(next.total.coresPeak);
+      next.total.flowPeak = finiteNumber(next.total.flowPeak);
+      next.total.researchBought = finiteNumber(next.total.researchBought);
       return next;
     }
 

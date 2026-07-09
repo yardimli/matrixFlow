@@ -2,7 +2,8 @@
   const { D, formatNumber, formatTime } = window.MF.utils;
 
   function createPages(context) {
-    const { state, researchData, storyData, legacyData, helpData, economy } = context;
+    const { state, researchData, storyData, legacyData, helpData, economy, getDevClickMultiplier } = context;
+    const FIRST_FLOW_DOWNLOAD_BYTES = 1474560;
 
     function renderMatrixPage() {
       const tapUnlocked = economy.isTapUpgradeUnlocked();
@@ -11,13 +12,44 @@
       const flowCost = economy.getFlowCost();
       return `
         <div class="matrix-page" id="matrix-page">
-          <button class="tap-zone" id="tap-zone" type="button" aria-label="Pulse matrix"></button>
+          <section class="download-stage" aria-label="Mini upgrade download">
+            ${renderFirstFlowDownload()}
+          </section>
           <section class="upgrade-stack" aria-label="Upgrades">
-            ${renderUpgrade("tap-upgrade", tapUnlocked, D(state.cycles).gte(tapCost), "cycles / tap", `+${formatNumber(economy.getCyclesPerTap())} cycles / tap`, `level ${state.tapLevel}`, `cost ${formatNumber(tapCost)}`)}
-            ${renderUpgrade("flow-upgrade", flowUnlocked, D(state.cycles).gte(flowCost), "flow", `<span id="live-flow">${formatNumber(economy.getFlowRate())} cycles / second</span>`, `level ${state.flowLevel}`, `cost ${formatNumber(flowCost)}`)}
+            ${renderUpgrade("tap-upgrade", tapUnlocked, D(state.cycles).gte(tapCost), "cycles / tap", `+${formatNumber(economy.getCyclesPerTap())} cycles / tap`, `level ${state.tapLevel}`, `cost ${formatNumber(tapCost, { shortenAt: 100000 })}`)}
+            ${renderUpgrade("flow-upgrade", flowUnlocked, D(state.cycles).gte(flowCost), "flow", `<span id="live-flow">${formatNumber(economy.getFlowRate())} cycles / second</span>`, `level ${state.flowLevel}`, `cost ${formatNumber(flowCost, { shortenAt: 100000 })}`)}
           </section>
         </div>
       `;
+    }
+
+    function renderFirstFlowDownload() {
+      const download = state.downloads?.firstFlow;
+      if (!download?.started || download.complete) return "";
+      const progress = getDownloadProgress(download);
+      return `
+        <div class="download-panel">
+          <div class="download-label" id="download-label">${getDownloadLabel(download)}</div>
+          <div class="download-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.floor(progress)}">
+            <div class="download-bar-fill" id="download-bar-fill" style="width: ${progress}%"></div>
+          </div>
+          <div class="download-percent" id="download-percent">${Math.floor(progress)}%</div>
+        </div>
+      `;
+    }
+
+    function getDownloadProgress(download) {
+      return Math.max(0, Math.min(100, (download.bytes / FIRST_FLOW_DOWNLOAD_BYTES) * 100));
+    }
+
+    function getDownloadLabel(download) {
+      return Math.floor(state.lifetime.time / 1.2) % 2 === 0 ? "LOADING..." : formatDownloadAmount(download.bytes);
+    }
+
+    function formatDownloadAmount(bytes) {
+      if (bytes < 100000) return `${Math.floor(bytes)} bytes`;
+      if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+      return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
     }
 
     function renderUpgrade(id, unlocked, canAfford, title, effect, level, cost) {
@@ -124,7 +156,7 @@
               <article class="legacy-entry ${unlocked ? "legacy-unlocked" : "legacy-locked"}">
                 <strong>${legacy.name}</strong>
                 <p>${legacy.description}</p>
-                <small>${unlocked ? legacyEffectText(legacy.effects) : legacy.cost}</small>
+                <small>${legacyEffectText(legacy)}</small>
               </article>
             `;
           }).join("")}
@@ -151,7 +183,19 @@
           <p>Matrix Flow is a small vanilla HTML, CSS, and JavaScript incremental game about teaching a dark system to reveal its own source.</p>
           <p class="muted">Save data is local to this browser.</p>
           <button class="reboot-button danger" id="reset-save" type="button">reset save</button>
+          <div class="dev-multiplier-row" aria-label="Development tap multiplier">
+            ${[1, 10, 100, 1000].map(renderDevMultiplier).join("")}
+          </div>
         </section>
+      `;
+    }
+
+    function renderDevMultiplier(multiplier) {
+      const active = getDevClickMultiplier() === multiplier;
+      return `
+        <button class="dev-multiplier ${active ? "active" : ""}" type="button" data-dev-multiplier="${multiplier}">
+          ${multiplier}x
+        </button>
       `;
     }
 
@@ -159,14 +203,27 @@
       return `<div class="stat-row"><span>${label}</span><strong>${lifetime}</strong><strong>${total}</strong></div>`;
     }
 
-    function legacyEffectText(effects = {}) {
-      return Object.entries(effects).map(([key, value]) => `${key.replace("Multiplier", "")} +${Math.round(value * 100)}%`).join(", ");
+    function legacyEffectText(legacy) {
+      return economy.getLegacyEffects(legacy)
+        .map(({ key, value, scaling }) => {
+          const source = scaling?.stat ? ` (${scalingLabel(scaling.stat)} / ${formatNumber(scaling.divisor)})` : "";
+          return `${key.replace("Multiplier", "")} +${Math.round(value * 100)}%${source}`;
+        })
+        .join(", ");
     }
 
     function effectText(effects = {}) {
       return Object.entries(effects)
-        .map(([key, value]) => `${key.replace("Multiplier", "")} +${Math.round(value * 100)}%`)
+        .map(([key, value]) => `${effectLabel(key)} ${value >= 0 ? "+" : ""}${Math.round(value * 100)}%`)
         .join(", ");
+    }
+
+    function effectLabel(key) {
+      const labels = {
+        tapCostMultiplier: "tap upgrade cost",
+        flowCostMultiplier: "flow upgrade cost"
+      };
+      return labels[key] || key.replace("Multiplier", "");
     }
 
     function getDifficultyLabel() {
@@ -175,6 +232,17 @@
       if (ratio >= 6) return "hard";
       if (ratio >= 2) return "tightening";
       return "soft";
+    }
+
+    function scalingLabel(stat) {
+      const labels = {
+        taps: "lifetime taps",
+        time: "lifetime time",
+        cycles: "lifetime cycles",
+        sourceCode: "lifetime source",
+        cores: "lifetime cores"
+      };
+      return labels[stat] || stat;
     }
 
     return {

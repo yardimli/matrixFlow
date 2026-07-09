@@ -28,11 +28,25 @@
     "effects": { "sourceMultiplier": 0.2 }
   },
   {
+    "id": "tap_bulk_patch",
+    "name": "tap bulk patch",
+    "description": "The upgrade ladder is cached before the hand reaches for it.",
+    "cost": 5000,
+    "effects": { "tapCostMultiplier": -0.9 }
+  },
+  {
     "id": "cpu_affinity",
     "name": "cpu affinity",
     "description": "The reboot returns closer to the processor beneath the dream.",
     "cost": 10000,
     "effects": { "cpuMultiplier": 0.08 }
+  },
+  {
+    "id": "flow_bulk_patch",
+    "name": "flow bulk patch",
+    "description": "The rain learns to buy its own channels wholesale.",
+    "cost": 25000,
+    "effects": { "flowCostMultiplier": -0.9 }
   },
   {
     "id": "glyph_index",

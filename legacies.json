@@ -5,15 +5,16 @@
     "description": "Reboot once.",
     "cost": "1 reboot",
     "condition": { "stat": "reboots", "gte": 1 },
-    "effects": { "tapMultiplier": 0.08, "flowMultiplier": 0.08 }
+    "effects": { "flowMultiplier": 0.08 }
   },
   {
     "id": "source_100",
     "name": "hundred-line ghost",
-    "description": "Write 100 total source code lines.",
+    "description": "Write 100 source code lines in one run.",
     "cost": "100 source",
-    "condition": { "stat": "totalSourceCode", "gte": 100 },
-    "effects": { "sourceMultiplier": 0.12, "cpuMultiplier": 0.04 }
+    "condition": { "stat": "sourceCode", "gte": 100 },
+    "effects": { "flowMultiplier": 0.12 },
+    "scaling": { "stat": "sourceCode", "divisor": 100 }
   },
   {
     "id": "core_25",
@@ -34,18 +35,20 @@
   {
     "id": "research_10",
     "name": "black-box scholar",
-    "description": "Buy 10 research nodes.",
+    "description": "Buy 10 research nodes in one run.",
     "cost": "10 research",
     "condition": { "stat": "researchBought", "gte": 10 },
-    "effects": { "tapMultiplier": 0.12, "legacyMultiplier": 0.1 }
+    "effects": { "coreMultiplier": 0.12 },
+    "scaling": { "stat": "taps", "divisor": 5000 }
   },
   {
     "id": "cycles_1e6",
     "name": "million-cycle echo",
-    "description": "Accumulate 1e6 total cycles.",
+    "description": "Accumulate 1e6 cycles in one run.",
     "cost": "1e6 cycles",
-    "condition": { "stat": "totalCycles", "gte": 1000000 },
-    "effects": { "tapMultiplier": 0.1 }
+    "condition": { "stat": "cycles", "gte": 1000000 },
+    "effects": { "flowMultiplier": 0.16 },
+    "scaling": { "stat": "cycles", "divisor": 1000000 }
   },
   {
     "id": "reboot_3",
@@ -53,15 +56,16 @@
     "description": "Reboot three times.",
     "cost": "3 reboots",
     "condition": { "stat": "reboots", "gte": 3 },
-    "effects": { "cpuMultiplier": 0.08 }
+    "effects": { "coreMultiplier": 0.12 }
   },
   {
     "id": "source_1k",
     "name": "kiloline witness",
-    "description": "Write 1k total source code lines.",
+    "description": "Write 1k source code lines in one run.",
     "cost": "1k source",
-    "condition": { "stat": "totalSourceCode", "gte": 1000 },
-    "effects": { "sourceMultiplier": 0.18 }
+    "condition": { "stat": "sourceCode", "gte": 1000 },
+    "effects": { "coreMultiplier": 0.2 },
+    "scaling": { "stat": "sourceCode", "divisor": 1000 }
   },
   {
     "id": "flow_50",
@@ -77,7 +81,8 @@
     "description": "Reach 100 cores in a run.",
     "cost": "100 cores",
     "condition": { "stat": "cores", "gte": 100 },
-    "effects": { "coreMultiplier": 0.28 }
+    "effects": { "coreMultiplier": 0.28 },
+    "scaling": { "stat": "cores", "divisor": 100 }
   },
   {
     "id": "research_20",
@@ -85,15 +90,17 @@
     "description": "Buy 20 research nodes in one run.",
     "cost": "20 research",
     "condition": { "stat": "researchBought", "gte": 20 },
-    "effects": { "legacyMultiplier": 0.16 }
+    "effects": { "flowMultiplier": 0.18 },
+    "scaling": { "stat": "time", "divisor": 3600 }
   },
   {
     "id": "cycles_1e12",
     "name": "trillion-cycle silence",
-    "description": "Accumulate 1e12 total cycles.",
+    "description": "Accumulate 1e12 cycles in one run.",
     "cost": "1e12 cycles",
-    "condition": { "stat": "totalCycles", "gte": 1000000000000 },
-    "effects": { "tapMultiplier": 0.22, "flowMultiplier": 0.18 }
+    "condition": { "stat": "cycles", "gte": 1000000000000 },
+    "effects": { "flowMultiplier": 0.32 },
+    "scaling": { "stat": "cycles", "divisor": 1000000000000 }
   },
   {
     "id": "reboot_10",
@@ -101,15 +108,16 @@
     "description": "Reboot ten times.",
     "cost": "10 reboots",
     "condition": { "stat": "reboots", "gte": 10 },
-    "effects": { "cpuMultiplier": 0.18 }
+    "effects": { "coreMultiplier": 0.24 }
   },
   {
     "id": "source_10k",
     "name": "scripture fragment",
-    "description": "Write 10k total source code lines.",
+    "description": "Write 10k source code lines in one run.",
     "cost": "10k source",
-    "condition": { "stat": "totalSourceCode", "gte": 10000 },
-    "effects": { "sourceMultiplier": 0.35 }
+    "condition": { "stat": "sourceCode", "gte": 10000 },
+    "effects": { "flowMultiplier": 0.35 },
+    "scaling": { "stat": "sourceCode", "divisor": 10000 }
   },
   {
     "id": "core_500",
@@ -130,18 +138,20 @@
   {
     "id": "cycles_1e18",
     "name": "eighteenth exponent",
-    "description": "Accumulate 1e18 total cycles.",
+    "description": "Accumulate 1e18 cycles in one run.",
     "cost": "1e18 cycles",
-    "condition": { "stat": "totalCycles", "gte": "1e18" },
-    "effects": { "tapMultiplier": 0.45, "flowMultiplier": 0.45 }
+    "condition": { "stat": "cycles", "gte": "1e18" },
+    "effects": { "coreMultiplier": 0.5 },
+    "scaling": { "stat": "cycles", "divisor": "1e18" }
   },
   {
     "id": "source_100k",
     "name": "authorless library",
-    "description": "Write 100k total source code lines.",
+    "description": "Write 100k source code lines in one run.",
     "cost": "100k source",
-    "condition": { "stat": "totalSourceCode", "gte": 100000 },
-    "effects": { "sourceMultiplier": 0.7, "cpuMultiplier": 0.25 }
+    "condition": { "stat": "sourceCode", "gte": 100000 },
+    "effects": { "flowMultiplier": 0.7 },
+    "scaling": { "stat": "sourceCode", "divisor": 100000 }
   },
   {
     "id": "reboot_25",
@@ -149,14 +159,14 @@
     "description": "Reboot twenty-five times.",
     "cost": "25 reboots",
     "condition": { "stat": "reboots", "gte": 25 },
-    "effects": { "legacyMultiplier": 0.35, "cpuMultiplier": 0.3 }
+    "effects": { "coreMultiplier": 0.65 }
   },
   {
     "id": "cycles_1e30",
     "name": "dark exponent choir",
-    "description": "Accumulate 1e30 total cycles.",
+    "description": "Accumulate 1e30 cycles in one run.",
     "cost": "1e30 cycles",
-    "condition": { "stat": "totalCycles", "gte": "1e30" },
-    "effects": { "tapMultiplier": 1, "flowMultiplier": 1, "coreMultiplier": 0.8 }
+    "condition": { "stat": "cycles", "gte": "1e30" },
+    "effects": { "flowMultiplier": 1.2 }
   }
 ]

@@ -10,6 +10,11 @@
     "condition": { "stat": "flowLevel", "gte": 1 }
   },
   {
+    "id": "first_download",
+    "text": "The stream finds a package hidden in the rain. Downloaded upgrades are not tools exactly; they are scraps of executable memory, arriving byte by byte until the source learns a new way to survive the next beginning.",
+    "condition": { "stat": "firstFlowDownloadStarted", "gte": 1 }
+  },
+  {
     "id": "research_opens",
     "text": "The first research node is not a discovery. It is a permission slip. The system allows you to name one of its habits, and the habit becomes easier to exploit.",
     "condition": { "stat": "researchBought", "gte": 1 }

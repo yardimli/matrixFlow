@@ -10,7 +10,7 @@
     "cycles": 0,
     "tapLevel": 1,
     "flowLevel": 0,
-    "cores": 0,
+    "cores": 1,
     "sourceCode": 0,
     "totalSourceCode": 0,
     "cpuMultiplier": 1,
