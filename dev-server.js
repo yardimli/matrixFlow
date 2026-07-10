@@ -41,5 +41,5 @@ const server = http.createServer((request, response) => {
 });
 
 server.listen(port, host, () => {
-  console.log(`Matrix Flow running at http://${host}:${port}/`);
+  console.log(`Matrix RAM running at http://${host}:${port}/`);
 });

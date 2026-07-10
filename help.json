@@ -4,20 +4,28 @@
     "text": "The matrix is the visible surface of a hidden computation. It falls because the system is leaking meaning. When you tap it, you are not pressing a button; you are convincing the dark to admit that it can be changed."
   },
   {
-    "title": "cycles",
-    "text": "Cycles are the first currency of motion. They are small acts of processor time, gathered by touch and later by flow. Every cycle says: something happened, and the machine had to spend itself to make it true."
+    "title": "executions",
+    "text": "Executions are small acts of processor time, created by touch and later by background threads. Every execution leaves behind hashes, and hashes are the spendable proof that the machine did work."
+  },
+  {
+    "title": "hashes",
+    "text": "Hashes are the currency of the run. Executions create them, and upgrades and research spend them. The work is the execution; the hash is the receipt."
   },
   {
     "title": "taps",
     "text": "A tap is direct contact with the simulation. Early on, the matrix only moves when you disturb it. Later, the tap becomes less important as a gesture and more important as a signal that other systems learn to amplify."
   },
   {
-    "title": "flow",
-    "text": "Flow is work that continues after the hand leaves the glass. Once flow exists, the rain keeps falling. The system has learned a rhythm and no longer needs permission for every drop."
+    "title": "RAM",
+    "text": "RAM is temporary space for background threads. More RAM lets the system keep more small processes awake at once, and those threads contribute executions that produce hashes while your hand is away from the glass."
+  },
+  {
+    "title": "threads",
+    "text": "Threads are background processes. Each one is a small repeating task that spends processor time for you, turning available RAM into passive execution work. RAM size is shown as capacity, but the thread count is the part that explains the execution output."
   },
   {
     "title": "cores",
-    "text": "Cores are dense knots of progress. They form slowly, almost reluctantly, from cycles, flow, and repeated upgrades. A core does not merely add more cycles; it teaches all future cycle gain to arrive heavier."
+    "text": "Cores are dense knots of progress. They form slowly, almost reluctantly, from executions, background threads, and repeated upgrades. A core does not merely add more executions; it teaches all future execution gain to arrive heavier."
   },
   {
     "title": "research",
@@ -33,7 +41,7 @@
   },
   {
     "title": "reboot",
-    "text": "A reboot is not death. It is a bargain with memory. You surrender the current run's cycles, taps, flow, and cores, but the source code remains, and the next version wakes with a deeper processor under it."
+    "text": "A reboot is not death. It is a bargain with memory. You surrender the current run's executions, taps, RAM threads, and cores, but the source code remains, and the next version wakes with a deeper processor under it."
   },
   {
     "title": "legacies",

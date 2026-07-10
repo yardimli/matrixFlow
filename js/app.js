@@ -11,8 +11,9 @@
   const els = {
     game: document.getElementById("game"),
     page: document.getElementById("page"),
-    cycles: document.getElementById("cycles"),
+    hashes: document.getElementById("hashes"),
     cores: document.getElementById("cores"),
+    coresLabel: document.getElementById("cores-label"),
     pageName: document.getElementById("page-name"),
     menuButtons: Array.from(document.querySelectorAll(".menu-button"))
   };
@@ -23,6 +24,7 @@
   const matrix = window.MF.createMatrixEngine(document.getElementById("matrix"), config.matrix);
   let devClickMultiplier = 1;
   const pages = window.MF.createPages({
+    config,
     state,
     researchData,
     storyData,
@@ -31,10 +33,10 @@
     economy,
     getDevClickMultiplier: () => devClickMultiplier
   });
-  const FIRST_FLOW_DOWNLOAD_BYTES = 1474560;
-  const FIRST_FLOW_DOWNLOAD_START_CYCLES = 1440;
-  const DOWNLOAD_BYTES_PER_CYCLE = 4;
-  const FIRST_FLOW_DOWNLOAD_REWARD_SOURCE = 101;
+  const FIRST_RAM_DOWNLOAD_BYTES = 1474560;
+  const FIRST_RAM_DOWNLOAD_START_EXECUTIONS = 1440;
+  const DOWNLOAD_BYTES_PER_EXECUTION = 4;
+  const FIRST_RAM_DOWNLOAD_REWARD_SOURCE = 101;
   const CRASH_RUNNER_X = 72;
 
   let activePage = config.ui.defaultPage;
@@ -72,7 +74,7 @@
   });
 
   requestAnimationFrame(tick);
-  syncFirstFlowDownloadOnLoad();
+  syncFirstRamDownloadOnLoad();
   render();
 
   function bindMenu() {
@@ -95,11 +97,11 @@
     state.total.time += dt;
     maybeStartCrash();
 
-    const flowGain = economy.getFlowRate() * dt;
-    if (flowGain > 0) {
-      const lifetimeCyclesBeforeGain = state.lifetime.cycles;
-      economy.addCycles(flowGain);
-      processFirstFlowDownloadGain(flowGain, lifetimeCyclesBeforeGain);
+    const ramGain = economy.getRamRate() * dt;
+    if (ramGain > 0) {
+      const lifetimeExecutionsBeforeGain = state.lifetime.executions;
+      economy.addExecutions(ramGain);
+      processFirstRamDownloadGain(ramGain, lifetimeExecutionsBeforeGain);
     }
 
     updateDerivedProgress(dt);
@@ -113,7 +115,7 @@
       }
     }
 
-    matrix.setFlowing(state.flowLevel > 0);
+    matrix.setRamActive(state.ramLevel > 0);
     matrix.step(dt);
     updateCrash(dt);
     unlockProgress();
@@ -128,8 +130,8 @@
     state.cores = finiteNumber(state.cores + Math.max(0, coreTarget - state.cores) * Math.min(1, dt * config.core.convergenceRate));
     state.lifetime.coresPeak = Math.max(finiteNumber(state.lifetime.coresPeak), state.cores);
     state.total.coresPeak = Math.max(finiteNumber(state.total.coresPeak), state.cores);
-    state.lifetime.flowPeak = Math.max(finiteNumber(state.lifetime.flowPeak), state.flowLevel);
-    state.total.flowPeak = Math.max(finiteNumber(state.total.flowPeak), state.flowLevel);
+    state.lifetime.ramPeak = Math.max(finiteNumber(state.lifetime.ramPeak), state.ramLevel);
+    state.total.ramPeak = Math.max(finiteNumber(state.total.ramPeak), state.ramLevel);
 
     const sourceGain = economy.getSourceCodeRate() * dt;
     if (sourceGain > config.sourceCode.minimumGain) {
@@ -144,10 +146,10 @@
   function pulse() {
     state.lifetime.taps += devClickMultiplier;
     state.total.taps += devClickMultiplier;
-    const cycleGain = economy.getCyclesPerTap() * devClickMultiplier;
-    const lifetimeCyclesBeforeGain = state.lifetime.cycles;
-    economy.addCycles(cycleGain);
-    processFirstFlowDownloadGain(cycleGain, lifetimeCyclesBeforeGain);
+    const executionGain = economy.getExecutionsPerTap() * devClickMultiplier;
+    const lifetimeExecutionsBeforeGain = state.lifetime.executions;
+    economy.addExecutions(executionGain);
+    processFirstRamDownloadGain(executionGain, lifetimeExecutionsBeforeGain);
     maybeStartCrash();
     matrix.pulse();
     refreshMatrixUpgradeState();
@@ -155,8 +157,8 @@
 
   function buyTapUpgrade() {
     const cost = economy.getTapCost();
-    if (D(state.cycles).lt(cost) || !economy.isTapUpgradeUnlocked()) return;
-    state.cycles = D(state.cycles).minus(cost).toString();
+    if (D(state.hashes).lt(cost) || !economy.isTapUpgradeUnlocked()) return;
+    state.hashes = D(state.hashes).minus(cost).toString();
     state.tapLevel += 1;
     matrix.addDensity(config.matrix.upgradeDensityBoost);
     pageDirty = true;
@@ -174,23 +176,23 @@
     });
   }
 
-  function buyFlowUpgrade() {
-    const cost = economy.getFlowCost();
-    if (D(state.cycles).lt(cost) || !economy.isFlowUnlocked()) return;
-    state.cycles = D(state.cycles).minus(cost).toString();
-    state.flowLevel += 1;
-    matrix.addDensity(config.matrix.flowUpgradeDensityBoost);
+  function buyRamUpgrade() {
+    const cost = economy.getRamCost();
+    if (D(state.hashes).lt(cost) || !economy.isRamUnlocked()) return;
+    state.hashes = D(state.hashes).minus(cost).toString();
+    state.ramLevel += 1;
+    matrix.addDensity(config.matrix.ramUpgradeDensityBoost);
     pageDirty = true;
     render();
   }
 
-  function buyMaxFlowUpgrades() {
+  function buyMaxRamUpgrades() {
     buyMaxUpgrades({
-      isUnlocked: economy.isFlowUnlocked,
-      getCost: economy.getFlowCost,
+      isUnlocked: economy.isRamUnlocked,
+      getCost: economy.getRamCost,
       apply: () => {
-        state.flowLevel += 1;
-        matrix.addDensity(config.matrix.flowUpgradeDensityBoost);
+        state.ramLevel += 1;
+        matrix.addDensity(config.matrix.ramUpgradeDensityBoost);
       }
     });
   }
@@ -200,8 +202,8 @@
     let bought = 0;
     for (let guard = 0; guard < 10000; guard += 1) {
       const cost = upgrade.getCost();
-      if (D(state.cycles).lt(cost)) break;
-      state.cycles = D(state.cycles).minus(cost).toString();
+      if (D(state.hashes).lt(cost)) break;
+      state.hashes = D(state.hashes).minus(cost).toString();
       upgrade.apply();
       bought += 1;
     }
@@ -210,59 +212,59 @@
     render();
   }
 
-  function startFirstFlowDownloadIfReady() {
-    if (D(state.lifetime.cycles).lt(FIRST_FLOW_DOWNLOAD_START_CYCLES)) return;
-    startFirstFlowDownload();
+  function startFirstRamDownloadIfReady() {
+    if (D(state.lifetime.executions).lt(FIRST_RAM_DOWNLOAD_START_EXECUTIONS)) return;
+    startFirstRamDownload();
   }
 
-  function startFirstFlowDownload() {
-    const download = state.downloads.firstFlow;
+  function startFirstRamDownload() {
+    const download = state.downloads.firstRam;
     if (download.started || download.complete || download.rewarded) return;
     download.started = true;
     download.bytes = 0;
     pageDirty = true;
   }
 
-  function processFirstFlowDownloadGain(cycleGain, lifetimeCyclesBeforeGain) {
-    const before = D(lifetimeCyclesBeforeGain);
-    const after = D(state.lifetime.cycles);
-    if (!state.downloads.firstFlow.started) {
-      if (after.lt(FIRST_FLOW_DOWNLOAD_START_CYCLES)) return;
-      startFirstFlowDownload();
+  function processFirstRamDownloadGain(executionGain, lifetimeExecutionsBeforeGain) {
+    const before = D(lifetimeExecutionsBeforeGain);
+    const after = D(state.lifetime.executions);
+    if (!state.downloads.firstRam.started) {
+      if (after.lt(FIRST_RAM_DOWNLOAD_START_EXECUTIONS)) return;
+      startFirstRamDownload();
     }
-    const eligibleCycles = before.lt(FIRST_FLOW_DOWNLOAD_START_CYCLES)
-      ? after.minus(FIRST_FLOW_DOWNLOAD_START_CYCLES).toNumber()
-      : cycleGain;
-    if (eligibleCycles > 0) advanceFirstFlowDownload(eligibleCycles);
+    const eligibleExecutions = before.lt(FIRST_RAM_DOWNLOAD_START_EXECUTIONS)
+      ? after.minus(FIRST_RAM_DOWNLOAD_START_EXECUTIONS).toNumber()
+      : executionGain;
+    if (eligibleExecutions > 0) advanceFirstRamDownload(eligibleExecutions);
   }
 
-  function syncFirstFlowDownloadOnLoad() {
-    let download = state.downloads.firstFlow;
-    if (D(state.lifetime.cycles).lt(FIRST_FLOW_DOWNLOAD_START_CYCLES) && !download.complete && !download.rewarded) {
-      resetFirstFlowDownload();
+  function syncFirstRamDownloadOnLoad() {
+    let download = state.downloads.firstRam;
+    if (D(state.lifetime.executions).lt(FIRST_RAM_DOWNLOAD_START_EXECUTIONS) && !download.complete && !download.rewarded) {
+      resetFirstRamDownload();
     }
-    startFirstFlowDownloadIfReady();
-    download = state.downloads.firstFlow;
-    if (download.bytes >= FIRST_FLOW_DOWNLOAD_BYTES || (download.complete && !download.rewarded)) {
-      download.bytes = FIRST_FLOW_DOWNLOAD_BYTES;
-      completeFirstFlowDownload();
+    startFirstRamDownloadIfReady();
+    download = state.downloads.firstRam;
+    if (download.bytes >= FIRST_RAM_DOWNLOAD_BYTES || (download.complete && !download.rewarded)) {
+      download.bytes = FIRST_RAM_DOWNLOAD_BYTES;
+      completeFirstRamDownload();
     }
   }
 
-  function advanceFirstFlowDownload(cycles) {
-    const download = state.downloads.firstFlow;
+  function advanceFirstRamDownload(executions) {
+    const download = state.downloads.firstRam;
     if (!download.started || download.complete) return;
-    download.bytes = Math.min(FIRST_FLOW_DOWNLOAD_BYTES, finiteNumber(download.bytes + cycles * DOWNLOAD_BYTES_PER_CYCLE));
-    if (download.bytes < FIRST_FLOW_DOWNLOAD_BYTES) return;
-    completeFirstFlowDownload();
+    download.bytes = Math.min(FIRST_RAM_DOWNLOAD_BYTES, finiteNumber(download.bytes + executions * DOWNLOAD_BYTES_PER_EXECUTION));
+    if (download.bytes < FIRST_RAM_DOWNLOAD_BYTES) return;
+    completeFirstRamDownload();
   }
 
-  function completeFirstFlowDownload() {
-    const download = state.downloads.firstFlow;
+  function completeFirstRamDownload() {
+    const download = state.downloads.firstRam;
     if (download.complete) return;
     download.complete = true;
     if (!download.rewarded) {
-      addSourceCode(FIRST_FLOW_DOWNLOAD_REWARD_SOURCE);
+      addSourceCode(FIRST_RAM_DOWNLOAD_REWARD_SOURCE);
       download.rewarded = true;
     }
     pageDirty = true;
@@ -274,8 +276,8 @@
     state.total.sourceCode = finiteNumber(state.total.sourceCode + lines);
   }
 
-  function resetFirstFlowDownload() {
-    state.downloads.firstFlow = {
+  function resetFirstRamDownload() {
+    state.downloads.firstRam = {
       started: false,
       complete: false,
       bytes: 0,
@@ -394,11 +396,31 @@
     const item = researchData.find((entry) => entry.id === id);
     if (!item || economy.isResearchBought(item.id)) return;
     const cost = economy.getResearchCost(item);
-    if (D(state.cycles).lt(cost)) return;
-    state.cycles = D(state.cycles).minus(cost).toString();
+    if (D(state.hashes).lt(cost)) return;
+    state.hashes = D(state.hashes).minus(cost).toString();
     state.research[item.id] = true;
+    unlockProgramFromResearch(item);
     state.lifetime.researchBought += 1;
     state.total.researchBought += 1;
+    pageDirty = true;
+    render();
+  }
+
+  function unlockProgramFromResearch(item) {
+    const programId = item.effects?.unlockProgram;
+    if (!programId) return;
+    const program = (config.programs?.items || []).find((entry) => entry.id === programId);
+    if (!program) return;
+    state.programs.unlocked[program.id] = true;
+  }
+
+  function toggleProgram(id) {
+    if (!state.programs?.unlocked?.[id]) return;
+    if (state.programs.active === id) {
+      state.programs.active = null;
+    } else if (!state.programs.active) {
+      state.programs.active = id;
+    }
     pageDirty = true;
     render();
   }
@@ -408,13 +430,19 @@
     state.reboots += 1;
     state.previousRunSourceCode = Math.max(1, state.sourceCode);
     state.totalSourceCode = finiteNumber(state.totalSourceCode + state.sourceCode);
-    state.cycles = "0";
+    state.hashes = "0";
+    state.executions = "0";
     state.tapLevel = config.startingState.tapLevel;
-    state.flowLevel = config.startingState.flowLevel;
+    state.ramLevel = config.startingState.ramLevel;
     state.cores = config.startingState.cores;
     state.sourceCode = config.startingState.sourceCode;
     state.research = {};
-    resetFirstFlowDownload();
+    state.programs = {
+      unlocked: {},
+      active: null,
+      slots: config.programs?.slots || 1
+    };
+    resetFirstRamDownload();
     resetCrashes();
     state.lifetime = store.freshStats();
     state.cpuMultiplier = economy.getCpuMultiplier();
@@ -529,10 +557,13 @@
   }
 
   function render(updatePage = true) {
-    if (activePage === "cycles" && !isCyclesPageUnlocked()) activePage = config.ui.defaultPage;
-    els.cycles.textContent = formatNumber(state.cycles, { shortenAt: 100000, decimalsFromUnit: "M" });
-    els.cores.textContent = formatNumber(state.cores);
-    els.pageName.textContent = activePage;
+    if (activePage === "executions" && !isExecutionsPageUnlocked()) activePage = config.ui.defaultPage;
+    if (activePage === "programs" && !isProgramsPageUnlocked()) activePage = config.ui.defaultPage;
+    els.hashes.textContent = formatNumber(state.hashes, { shortenAt: 100000, decimalsFromUnit: "M" });
+    const effectiveCores = economy.getEffectiveCores();
+    els.cores.textContent = formatNumber(effectiveCores);
+    els.coresLabel.textContent = Math.floor(effectiveCores) === 1 ? "core" : "cores";
+    els.pageName.textContent = getPageName(activePage);
     updateMenuAvailability();
     els.menuButtons.forEach((button) => button.classList.toggle("active", button.dataset.page === activePage));
 
@@ -556,24 +587,27 @@
 
   function getMatrixUpgradeState() {
     const tapCost = economy.getTapCost();
-    const flowCost = economy.getFlowCost();
+    const ramCost = economy.getRamCost();
     return [
       economy.isTapUpgradeUnlocked(),
-      D(state.cycles).gte(tapCost),
+      D(state.hashes).gte(tapCost),
       state.tapLevel,
-      economy.isFlowUnlocked(),
-      D(state.cycles).gte(flowCost),
-      state.flowLevel
+      economy.isRamUnlocked(),
+      D(state.hashes).gte(ramCost),
+      state.ramLevel
     ].join("|");
   }
 
   function bindPageEvents() {
     document.getElementById("tap-upgrade")?.addEventListener("click", buyTapUpgrade);
     document.getElementById("tap-upgrade-max")?.addEventListener("click", buyMaxTapUpgrades);
-    document.getElementById("flow-upgrade")?.addEventListener("click", buyFlowUpgrade);
-    document.getElementById("flow-upgrade-max")?.addEventListener("click", buyMaxFlowUpgrades);
+    document.getElementById("ram-upgrade")?.addEventListener("click", buyRamUpgrade);
+    document.getElementById("ram-upgrade-max")?.addEventListener("click", buyMaxRamUpgrades);
     document.querySelectorAll("[data-research-id]").forEach((button) => {
       button.addEventListener("click", () => buyResearch(button.dataset.researchId));
+    });
+    document.querySelectorAll("[data-program-id]").forEach((button) => {
+      button.addEventListener("click", () => toggleProgram(button.dataset.programId));
     });
     document.querySelectorAll("[data-research-view]").forEach((button) => {
       button.addEventListener("click", () => {
@@ -615,20 +649,35 @@
 
   function updateMenuAvailability() {
     els.menuButtons.forEach((button) => {
-      if (button.dataset.page !== "cycles") return;
-      button.hidden = !isCyclesPageUnlocked();
+      if (button.dataset.page === "executions") {
+        button.hidden = !isExecutionsPageUnlocked();
+      }
+      if (button.dataset.page === "programs") {
+        button.hidden = !isProgramsPageUnlocked();
+      }
     });
   }
 
-  function isCyclesPageUnlocked() {
+  function isExecutionsPageUnlocked() {
     return state.total.taps >= 256;
+  }
+
+  function isProgramsPageUnlocked() {
+    return Object.keys(state.programs?.unlocked || {}).length > 0;
+  }
+
+  function getPageName(page) {
+    const labels = {
+      programs: "program"
+    };
+    return labels[page] || page;
   }
 
   function updateLiveBits() {
     const live = {
-      "live-flow": `${formatNumber(economy.getFlowRate())} cycles / second`,
+      "live-ram": formatRamProfile(state.ramLevel),
       "live-source": `${formatNumber(state.sourceCode)} lines`,
-      "live-core-mult": `${formatNumber(economy.getCycleMultiplier())}x cycle gain`
+      "live-core-mult": `${formatNumber(economy.getExecutionMultiplier())}x execution gain`
     };
     Object.entries(live).forEach(([id, value]) => {
       const node = document.getElementById(id);
@@ -638,23 +687,57 @@
   }
 
   function updateDownloadBits() {
-    const download = state.downloads.firstFlow;
+    const download = state.downloads.firstRam;
     if (!download.started || download.complete) return;
-    const progress = getFirstFlowDownloadProgress();
+    const progress = getFirstRamDownloadProgress();
     const label = document.getElementById("download-label");
     const bar = document.getElementById("download-bar-fill");
     const percent = document.getElementById("download-percent");
-    if (label) label.textContent = getFirstFlowDownloadLabel();
+    if (label) label.textContent = getFirstRamDownloadLabel();
     if (bar) bar.style.width = `${progress}%`;
     if (percent) percent.textContent = `${Math.floor(progress)}%`;
   }
 
-  function getFirstFlowDownloadProgress() {
-    return Math.max(0, Math.min(100, (state.downloads.firstFlow.bytes / FIRST_FLOW_DOWNLOAD_BYTES) * 100));
+  function getFirstRamDownloadProgress() {
+    return Math.max(0, Math.min(100, (state.downloads.firstRam.bytes / FIRST_RAM_DOWNLOAD_BYTES) * 100));
   }
 
-  function getFirstFlowDownloadLabel() {
-    return Math.floor(state.lifetime.time / 1.2) % 2 === 0 ? "LOADING..." : formatDownloadAmount(state.downloads.firstFlow.bytes);
+  function getFirstRamDownloadLabel() {
+    return Math.floor(state.lifetime.time / 1.2) % 2 === 0 ? "LOADING..." : formatDownloadAmount(state.downloads.firstRam.bytes);
+  }
+
+  function formatRamProfile(level) {
+    if (level <= 0) return "0 KB / 0 threads";
+    return `${formatRamAmount(level)} / ${formatThreadCount(getRamThreadCount(level))}`;
+  }
+
+  function getRamThreadCount(level) {
+    const safeLevel = Math.max(0, Math.floor(Number(level) || 0));
+    if (safeLevel <= 0) return 0;
+    const table = config.upgradeTables?.ram || {};
+    return Number(table.baseIncome ?? 1) + safeLevel * Number(table.incomePerUpgrade ?? 1);
+  }
+
+  function formatThreadCount(count) {
+    const threads = Math.floor(Math.max(0, Number(count) || 0));
+    return `${formatNumber(threads)} ${threads === 1 ? "thread" : "threads"}`;
+  }
+
+  function formatRamAmount(level) {
+    const safeLevel = Math.max(0, Math.floor(Number(level) || 0));
+    if (safeLevel <= 0) return "0 KB";
+    const baseKilobytes = Number(config.ramDisplay?.baseKilobytes || 64);
+    const growth = Number(config.ramDisplay?.growth || 2);
+    const kilobytes = baseKilobytes * Math.pow(growth, safeLevel - 1);
+    const units = ["KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+    let scaled = kilobytes;
+    let unitIndex = 0;
+    while (scaled >= 1024 && unitIndex < units.length - 1) {
+      scaled /= 1024;
+      unitIndex += 1;
+    }
+    const shown = scaled >= 100 || Number.isInteger(scaled) ? Math.floor(scaled) : scaled.toFixed(1);
+    return `${shown}${units[unitIndex]}`;
   }
 
   function formatDownloadAmount(bytes) {

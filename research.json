@@ -7,16 +7,16 @@
     "effects": { "tapMultiplier": 0.08 }
   },
   {
-    "id": "flow_threads",
-    "name": "flow threads",
-    "description": "Passive streams are split until waiting becomes a form of work.",
+    "id": "ram_threads",
+    "name": "RAM threads",
+    "description": "RAM is partitioned into background threads, and waiting becomes a form of work.",
     "cost": 250,
-    "effects": { "flowMultiplier": 0.1 }
+    "effects": { "ramMultiplier": 0.4 }
   },
   {
     "id": "core_compiler",
     "name": "core compiler",
-    "description": "Loose cycles are pressed into slower, hotter memory.",
+    "description": "Loose executions are pressed into slower, hotter memory.",
     "cost": 500,
     "effects": { "coreMultiplier": 0.1 }
   },
@@ -42,11 +42,11 @@
     "effects": { "cpuMultiplier": 0.05 }
   },
   {
-    "id": "flow_bulk_patch",
-    "name": "flow bulk patch",
-    "description": "The rain learns to buy its own channels wholesale.",
+    "id": "ram_bulk_patch",
+    "name": "RAM bulk patch",
+    "description": "The RAM scheduler prepares thread channels in bulk before they are needed.",
     "cost": 25000,
-    "effects": { "flowCostMultiplier": -0.9 }
+    "effects": { "ramCostMultiplier": -0.9 }
   },
   {
     "id": "glyph_index",
@@ -56,11 +56,11 @@
     "effects": { "tapMultiplier": 0.1, "sourceMultiplier": 0.05 }
   },
   {
-    "id": "rain_buffer",
-    "name": "rain buffer",
-    "description": "Falling code remembers where it has already fallen.",
+    "id": "ram_buffer",
+    "name": "RAM buffer",
+    "description": "Background threads keep their place in RAM and resume without asking.",
     "cost": 50000,
-    "effects": { "flowMultiplier": 0.12 }
+    "effects": { "ramMultiplier": 0.48 }
   },
   {
     "id": "thermal_core",
@@ -74,14 +74,14 @@
     "name": "recursion gate",
     "description": "The output enters the input wearing a different face.",
     "cost": 250000,
-    "effects": { "tapMultiplier": 0.13, "flowMultiplier": 0.07 }
+    "effects": { "tapMultiplier": 0.13, "ramMultiplier": 0.28 }
   },
   {
     "id": "sleeping_daemon",
     "name": "sleeping daemon",
     "description": "A small process works in the dark and denies it is awake.",
     "cost": 500000,
-    "effects": { "flowMultiplier": 0.16 }
+    "effects": { "ramMultiplier": 0.64 }
   },
   {
     "id": "source_lens",
@@ -93,9 +93,16 @@
   {
     "id": "max_buy",
     "name": "batch executor",
-    "description": "The hand gives one order. The machine spends until the order has no cycles left.",
+    "description": "The hand gives one order. The machine spends hashes until the order has no balance left.",
     "cost": 10000000,
     "effects": { "maxBuy": 1 }
+  },
+  {
+    "id": "program_core_fork",
+    "name": "program: core fork",
+    "description": "Unlock a runnable program that lends the machine 32 extra cores while active.",
+    "cost": 10000000,
+    "effects": { "unlockProgram": "core_fork" }
   },
   {
     "id": "branch_predictor",
@@ -105,11 +112,25 @@
     "effects": { "tapMultiplier": 0.16 }
   },
   {
+    "id": "program_tap_vector",
+    "name": "program: tap vector",
+    "description": "Unlock a runnable program that sharply improves manual executions.",
+    "cost": "1e9",
+    "effects": { "unlockProgram": "tap_vector" }
+  },
+  {
     "id": "bus_width",
     "name": "bus width",
     "description": "More signal crosses the same silence.",
     "cost": "1e10",
-    "effects": { "flowMultiplier": 0.18 }
+    "effects": { "ramMultiplier": 0.18 }
+  },
+  {
+    "id": "program_thread_daemon",
+    "name": "program: thread daemon",
+    "description": "Unlock a runnable program that improves RAM background tasks.",
+    "cost": "1e11",
+    "effects": { "unlockProgram": "thread_daemon" }
   },
   {
     "id": "kernel_whisper",
@@ -119,11 +140,25 @@
     "effects": { "cpuMultiplier": 0.07 }
   },
   {
+    "id": "program_core_resolver",
+    "name": "program: core resolver",
+    "description": "Unlock a runnable program that pushes core growth higher.",
+    "cost": "1e13",
+    "effects": { "unlockProgram": "core_resolver" }
+  },
+  {
     "id": "compiled_memory",
     "name": "compiled memory",
     "description": "What was remembered becomes executable.",
     "cost": "1e14",
     "effects": { "legacyMultiplier": 0.06 }
+  },
+  {
+    "id": "program_io_broker",
+    "name": "program: I/O broker",
+    "description": "Unlock a runnable program that boosts taps and RAM threads together.",
+    "cost": "1e15",
+    "effects": { "unlockProgram": "io_broker" }
   },
   {
     "id": "vector_tap",
@@ -133,11 +168,25 @@
     "effects": { "tapMultiplier": 0.22 }
   },
   {
-    "id": "autonomous_flow",
-    "name": "autonomous flow",
-    "description": "The rain no longer asks whether anyone is watching.",
+    "id": "program_wide_fork",
+    "name": "program: wide fork",
+    "description": "Unlock a runnable program that lends the machine 96 extra cores while active.",
+    "cost": "1e17",
+    "effects": { "unlockProgram": "wide_fork" }
+  },
+  {
+    "id": "autonomous_ram",
+    "name": "autonomous RAM",
+    "description": "RAM keeps its background threads awake whether anyone is watching or not.",
     "cost": "1e18",
-    "effects": { "flowMultiplier": 0.26 }
+    "effects": { "ramMultiplier": 0.26 }
+  },
+  {
+    "id": "program_thread_swarm",
+    "name": "program: thread swarm",
+    "description": "Unlock a runnable program that massively improves background threads.",
+    "cost": "1e19",
+    "effects": { "unlockProgram": "thread_swarm" }
   },
   {
     "id": "core_lattice",
@@ -147,6 +196,13 @@
     "effects": { "coreMultiplier": 0.24 }
   },
   {
+    "id": "program_tap_jit",
+    "name": "program: tap JIT",
+    "description": "Unlock a runnable program that turns taps into a hot compiled path.",
+    "cost": "1e21",
+    "effects": { "unlockProgram": "tap_jit" }
+  },
+  {
     "id": "dead_code_harvest",
     "name": "dead code harvest",
     "description": "Nothing useless remains useless forever.",
@@ -154,11 +210,25 @@
     "effects": { "sourceMultiplier": 0.26 }
   },
   {
+    "id": "program_core_kernel",
+    "name": "program: core kernel",
+    "description": "Unlock a runnable program that strongly favors core growth.",
+    "cost": "1e23",
+    "effects": { "unlockProgram": "core_kernel" }
+  },
+  {
     "id": "scheduler_mask",
     "name": "scheduler mask",
     "description": "Time is not saved. It is hidden from the parts that would spend it.",
     "cost": "1e24",
-    "effects": { "cpuMultiplier": 0.1, "flowMultiplier": 0.1 }
+    "effects": { "cpuMultiplier": 0.1, "ramMultiplier": 0.1 }
+  },
+  {
+    "id": "program_scheduler_overdrive",
+    "name": "program: scheduler overdrive",
+    "description": "Unlock a runnable program that overdrives taps, threads, and core growth.",
+    "cost": "1e25",
+    "effects": { "unlockProgram": "scheduler_overdrive" }
   },
   {
     "id": "persistent_shadow",
@@ -175,11 +245,11 @@
     "effects": { "tapMultiplier": 0.28, "coreMultiplier": 0.18 }
   },
   {
-    "id": "black_rain",
-    "name": "black rain",
-    "description": "The brightest stream is the one that teaches darkness to calculate.",
+    "id": "black_buffer",
+    "name": "black buffer",
+    "description": "The brightest cache is the one whose background threads teach darkness to calculate.",
     "cost": "1e30",
-    "effects": { "flowMultiplier": 0.35 }
+    "effects": { "ramMultiplier": 0.35 }
   },
   {
     "id": "source_mirror",
@@ -193,12 +263,12 @@
     "name": "machine koan",
     "description": "The final question is compiled before it is understood.",
     "cost": "1e34",
-    "effects": { "tapMultiplier": 0.45, "flowMultiplier": 0.45, "legacyMultiplier": 0.14 }
+    "effects": { "tapMultiplier": 0.45, "ramMultiplier": 0.45, "legacyMultiplier": 0.14 }
   },
   {
     "id": "ghost_interrupt",
     "name": "ghost interrupt",
-    "description": "An event fires from no device and every waiting thread obeys.",
+    "description": "An event fires from no device and every sleeping background thread obeys.",
     "cost": "1e37",
     "effects": { "tapMultiplier": 0.32, "sourceMultiplier": 0.16 }
   },
@@ -207,7 +277,7 @@
     "name": "oracle bus",
     "description": "The channel predicts its own traffic and arrives already full.",
     "cost": "1e40",
-    "effects": { "flowMultiplier": 0.38, "cpuMultiplier": 0.12 }
+    "effects": { "ramMultiplier": 0.38, "cpuMultiplier": 0.12 }
   },
   {
     "id": "cold_boot_vault",
@@ -221,7 +291,7 @@
     "name": "silent parallelism",
     "description": "Work divides without asking the scheduler to notice.",
     "cost": "1e46",
-    "effects": { "coreMultiplier": 0.28, "flowMultiplier": 0.22 }
+    "effects": { "coreMultiplier": 0.28, "ramMultiplier": 0.22 }
   },
   {
     "id": "checksum_soul",
@@ -242,7 +312,7 @@
     "name": "dark scheduler",
     "description": "The queue continues below the floor where clocks cannot follow.",
     "cost": "1e55",
-    "effects": { "flowMultiplier": 0.55, "cpuMultiplier": 0.16 }
+    "effects": { "ramMultiplier": 0.55, "cpuMultiplier": 0.16 }
   },
   {
     "id": "memory_cathedral",
@@ -263,6 +333,6 @@
     "name": "final kernel",
     "description": "The last low voice becomes the operating system.",
     "cost": "1e64",
-    "effects": { "tapMultiplier": 0.75, "flowMultiplier": 0.75, "legacyMultiplier": 0.25 }
+    "effects": { "tapMultiplier": 0.75, "ramMultiplier": 0.75, "legacyMultiplier": 0.25 }
   }
 ]

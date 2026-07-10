@@ -5,7 +5,7 @@
     "description": "Reboot once.",
     "cost": "1 reboot",
     "condition": { "stat": "reboots", "gte": 1 },
-    "effects": { "flowMultiplier": 0.08 }
+    "effects": { "ramMultiplier": 0.08 }
   },
   {
     "id": "source_100",
@@ -13,7 +13,7 @@
     "description": "Write 100 source code lines in one run.",
     "cost": "100 source",
     "condition": { "stat": "sourceCode", "gte": 100 },
-    "effects": { "flowMultiplier": 0.12 },
+    "effects": { "ramMultiplier": 0.12 },
     "scaling": { "stat": "sourceCode", "divisor": 100 }
   },
   {
@@ -25,12 +25,12 @@
     "effects": { "coreMultiplier": 0.18 }
   },
   {
-    "id": "flow_20",
-    "name": "standing rain",
-    "description": "Reach flow level 20.",
-    "cost": "20 flow",
-    "condition": { "stat": "flowLevel", "gte": 20 },
-    "effects": { "flowMultiplier": 0.2 }
+    "id": "ram_20",
+    "name": "standing RAM",
+    "description": "Reach enough RAM to keep level 20 background threads alive.",
+    "cost": "20 RAM",
+    "condition": { "stat": "ramLevel", "gte": 20 },
+    "effects": { "ramMultiplier": 0.2 }
   },
   {
     "id": "research_10",
@@ -42,13 +42,13 @@
     "scaling": { "stat": "taps", "divisor": 5000 }
   },
   {
-    "id": "cycles_1e6",
-    "name": "million-cycle echo",
-    "description": "Accumulate 1e6 cycles in one run.",
-    "cost": "1e6 cycles",
-    "condition": { "stat": "cycles", "gte": 1000000 },
-    "effects": { "flowMultiplier": 0.16 },
-    "scaling": { "stat": "cycles", "divisor": 1000000 }
+    "id": "executions_1e6",
+    "name": "million-execution echo",
+    "description": "Accumulate 1e6 executions in one run.",
+    "cost": "1e6 executions",
+    "condition": { "stat": "executions", "gte": 1000000 },
+    "effects": { "ramMultiplier": 0.16 },
+    "scaling": { "stat": "executions", "divisor": 1000000 }
   },
   {
     "id": "reboot_3",
@@ -68,12 +68,12 @@
     "scaling": { "stat": "sourceCode", "divisor": 1000 }
   },
   {
-    "id": "flow_50",
-    "name": "permanent weather",
-    "description": "Reach flow level 50.",
-    "cost": "50 flow",
-    "condition": { "stat": "flowLevel", "gte": 50 },
-    "effects": { "flowMultiplier": 0.28 }
+    "id": "ram_50",
+    "name": "permanent cache",
+    "description": "Reach enough RAM to keep level 50 background threads alive.",
+    "cost": "50 RAM",
+    "condition": { "stat": "ramLevel", "gte": 50 },
+    "effects": { "ramMultiplier": 0.28 }
   },
   {
     "id": "core_100",
@@ -90,17 +90,17 @@
     "description": "Buy 20 research nodes in one run.",
     "cost": "20 research",
     "condition": { "stat": "researchBought", "gte": 20 },
-    "effects": { "flowMultiplier": 0.18 },
+    "effects": { "ramMultiplier": 0.18 },
     "scaling": { "stat": "time", "divisor": 3600 }
   },
   {
-    "id": "cycles_1e12",
-    "name": "trillion-cycle silence",
-    "description": "Accumulate 1e12 cycles in one run.",
-    "cost": "1e12 cycles",
-    "condition": { "stat": "cycles", "gte": 1000000000000 },
-    "effects": { "flowMultiplier": 0.32 },
-    "scaling": { "stat": "cycles", "divisor": 1000000000000 }
+    "id": "executions_1e12",
+    "name": "trillion-execution silence",
+    "description": "Accumulate 1e12 executions in one run.",
+    "cost": "1e12 executions",
+    "condition": { "stat": "executions", "gte": 1000000000000 },
+    "effects": { "ramMultiplier": 0.32 },
+    "scaling": { "stat": "executions", "divisor": 1000000000000 }
   },
   {
     "id": "reboot_10",
@@ -116,7 +116,7 @@
     "description": "Write 10k source code lines in one run.",
     "cost": "10k source",
     "condition": { "stat": "sourceCode", "gte": 10000 },
-    "effects": { "flowMultiplier": 0.35 },
+    "effects": { "ramMultiplier": 0.35 },
     "scaling": { "stat": "sourceCode", "divisor": 10000 }
   },
   {
@@ -128,21 +128,21 @@
     "effects": { "coreMultiplier": 0.45 }
   },
   {
-    "id": "flow_150",
-    "name": "rain without sky",
-    "description": "Reach flow level 150.",
-    "cost": "150 flow",
-    "condition": { "stat": "flowLevel", "gte": 150 },
-    "effects": { "flowMultiplier": 0.55 }
+    "id": "ram_150",
+    "name": "RAM without rest",
+    "description": "Reach enough RAM to keep level 150 background threads alive.",
+    "cost": "150 RAM",
+    "condition": { "stat": "ramLevel", "gte": 150 },
+    "effects": { "ramMultiplier": 0.55 }
   },
   {
-    "id": "cycles_1e18",
+    "id": "executions_1e18",
     "name": "eighteenth exponent",
-    "description": "Accumulate 1e18 cycles in one run.",
-    "cost": "1e18 cycles",
-    "condition": { "stat": "cycles", "gte": "1e18" },
+    "description": "Accumulate 1e18 executions in one run.",
+    "cost": "1e18 executions",
+    "condition": { "stat": "executions", "gte": "1e18" },
     "effects": { "coreMultiplier": 0.5 },
-    "scaling": { "stat": "cycles", "divisor": "1e18" }
+    "scaling": { "stat": "executions", "divisor": "1e18" }
   },
   {
     "id": "source_100k",
@@ -150,7 +150,7 @@
     "description": "Write 100k source code lines in one run.",
     "cost": "100k source",
     "condition": { "stat": "sourceCode", "gte": 100000 },
-    "effects": { "flowMultiplier": 0.7 },
+    "effects": { "ramMultiplier": 0.7 },
     "scaling": { "stat": "sourceCode", "divisor": 100000 }
   },
   {
@@ -162,11 +162,11 @@
     "effects": { "coreMultiplier": 0.65 }
   },
   {
-    "id": "cycles_1e30",
+    "id": "executions_1e30",
     "name": "dark exponent choir",
-    "description": "Accumulate 1e30 cycles in one run.",
-    "cost": "1e30 cycles",
-    "condition": { "stat": "cycles", "gte": "1e30" },
-    "effects": { "flowMultiplier": 1.2 }
+    "description": "Accumulate 1e30 executions in one run.",
+    "cost": "1e30 executions",
+    "condition": { "stat": "executions", "gte": "1e30" },
+    "effects": { "ramMultiplier": 1.2 }
   }
 ]

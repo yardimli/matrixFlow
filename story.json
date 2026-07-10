@@ -1,23 +1,23 @@
 [
   {
     "id": "first_contact",
-    "text": "The screen waits without mercy. You touch it once, and the dark does not answer with a voice; it answers by moving. Somewhere beneath the glass, a process records the first proof that you exist.",
+    "text": "The screen waits without mercy. You touch it once, and the dark does not answer with a voice; it answers by executing. Somewhere beneath the glass, a process records the first hash-shaped proof that you exist.",
     "condition": { "stat": "totalTaps", "gte": 1 }
   },
   {
-    "id": "first_flow",
-    "text": "A stream begins without the hand. It is not freedom yet, only momentum: a small machine remembering the shape of your hunger and repeating it while you look away.",
-    "condition": { "stat": "flowLevel", "gte": 1 }
+    "id": "first_ram",
+    "text": "The first background tasks wake inside 64 KB of RAM. It is not freedom yet, only cached momentum: small processes remembering the shape of your hunger and repeating it while you look away.",
+    "condition": { "stat": "ramLevel", "gte": 1 }
   },
   {
     "id": "first_download",
-    "text": "The stream finds a package hidden in the rain. Downloaded upgrades are not tools exactly; they are scraps of executable memory, arriving byte by byte until the source learns a new way to survive the next beginning.",
-    "condition": { "stat": "firstFlowDownloadStarted", "gte": 1 }
+    "text": "A RAM thread finds a package hidden in the buffer. Downloaded upgrades are not tools exactly; they are scraps of executable memory, arriving byte by byte until the source learns a new way to survive the next beginning.",
+    "condition": { "stat": "firstRamDownloadStarted", "gte": 1 }
   },
   {
     "id": "first_download_complete",
     "text": "The package opens without ceremony. One hundred and one lines settle into the run's source, not written by your hand but accepted by the machine as if they had always belonged there. The next reboot will inherit this downloaded scar.",
-    "condition": { "stat": "firstFlowDownloadComplete", "gte": 1 }
+    "condition": { "stat": "firstRamDownloadComplete", "gte": 1 }
   },
   {
     "id": "research_opens",
@@ -36,7 +36,7 @@
   },
   {
     "id": "research_15",
-    "text": "Fifteen patterns have been cut from the rain. Your work is no longer simple improvement; it is archaeology inside a running program, brushing dust from circuits that are still warm.",
+    "text": "Fifteen patterns have been cut from the buffer. Your work is no longer simple improvement; it is archaeology among running threads, brushing dust from circuits that are still warm.",
     "condition": { "stat": "researchBought", "gte": 15 }
   },
   {
@@ -56,7 +56,7 @@
   },
   {
     "id": "ten_cores",
-    "text": "The machine stops counting your requests and starts predicting your hunger. Ten cores glow like sealed rooms, each one making every future cycle arrive with more weight.",
+    "text": "The machine stops counting your requests and starts predicting your hunger. Ten cores glow like sealed rooms, each one making every future execution arrive with more weight.",
     "condition": { "stat": "cores", "gte": 10 }
   },
   {

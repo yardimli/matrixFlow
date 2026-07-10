@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "ui": {
     "defaultPage": "matrix"
   },
@@ -7,9 +7,10 @@
     "maxFrameSeconds": 0.08
   },
   "startingState": {
-    "cycles": 0,
+    "hashes": 0,
+    "executions": 0,
     "tapLevel": 1,
-    "flowLevel": 0,
+    "ramLevel": 0,
     "cores": 1,
     "sourceCode": 0,
     "totalSourceCode": 0,
@@ -19,15 +20,19 @@
   },
   "unlocks": {
     "tapUpgradeClicks": 5,
-    "flowCycles": 100,
-    "flowTapLevel": 10
+    "ramExecutions": 100,
+    "ramTapLevel": 10
   },
   "production": {
-    "baseCyclesPerTap": 1,
+    "baseExecutionsPerTap": 1,
     "tapLevelBonus": 0.42,
-    "flowCyclesPerSecond": 1.2,
-    "flowLevelBonus": 0.055,
+    "ramExecutionsPerSecond": 1.2,
+    "ramLevelBonus": 0.055,
     "holdTapIntervalMs": 145
+  },
+  "ramDisplay": {
+    "baseKilobytes": 64,
+    "growth": 2
   },
   "upgradeTables": {
     "tap": {
@@ -36,27 +41,91 @@
       "baseIncome": 1,
       "incomePerUpgrade": 1
     },
-    "flow": {
+    "ram": {
       "baseStep": 8,
       "upgradesPerTier": 1,
-      "baseIncome": 1,
-      "incomePerUpgrade": 1
+      "baseIncome": 0,
+      "incomePerUpgrade": 2
     }
+  },
+  "programs": {
+    "slots": 1,
+    "items": [
+      {
+        "id": "core_fork",
+        "name": "core fork",
+        "description": "Spin up a temporary execution lane and lend the machine 32 extra cores.",
+        "effects": { "coreFlat": 32 }
+      },
+      {
+        "id": "tap_vector",
+        "name": "tap vector",
+        "description": "Route each manual execution through a narrow vector path.",
+        "effects": { "tapMultiplier": 1.2 }
+      },
+      {
+        "id": "thread_daemon",
+        "name": "thread daemon",
+        "description": "Keep RAM background tasks awake between visible pulses.",
+        "effects": { "ramMultiplier": 1.6 }
+      },
+      {
+        "id": "core_resolver",
+        "name": "core resolver",
+        "description": "Bias the scheduler toward core growth while the program is running.",
+        "effects": { "coreMultiplier": 1.4 }
+      },
+      {
+        "id": "io_broker",
+        "name": "I/O broker",
+        "description": "Let taps and threads share a hotter queue.",
+        "effects": { "tapMultiplier": 1.1, "ramMultiplier": 1.1 }
+      },
+      {
+        "id": "wide_fork",
+        "name": "wide fork",
+        "description": "Borrow a wider execution lane and lend the machine 96 extra cores.",
+        "effects": { "coreFlat": 96 }
+      },
+      {
+        "id": "thread_swarm",
+        "name": "thread swarm",
+        "description": "RAM schedules background tasks in dense overlapping waves.",
+        "effects": { "ramMultiplier": 3 }
+      },
+      {
+        "id": "tap_jit",
+        "name": "tap JIT",
+        "description": "Compile repeated taps into a short-lived hot path.",
+        "effects": { "tapMultiplier": 3 }
+      },
+      {
+        "id": "core_kernel",
+        "name": "core kernel",
+        "description": "Run a kernel that treats core growth as the primary process.",
+        "effects": { "coreMultiplier": 3.5 }
+      },
+      {
+        "id": "scheduler_overdrive",
+        "name": "scheduler overdrive",
+        "description": "Let every visible process steal time from the dark scheduler.",
+        "effects": { "tapMultiplier": 4, "ramMultiplier": 4, "coreMultiplier": 4 }
+      }
+    ]
   },
   "costs": {
     "tapBase": 10,
     "tapGrowth": 1.38,
-    "flowBase": 125,
-    "flowGrowth": 1.82
+    "ramBase": 125,
+    "ramGrowth": 1.82
   },
   "core": {
     "baseDivisor": 180,
     "tapLevelPower": 0.65,
-    "flowLevelPower": 1.2,
+    "ramLevelPower": 1.2,
     "targetScale": 0.08,
     "convergenceRate": 0.0007,
-    "multiplierPerCore": 0.045,
-    "sourceMultiplierPerLine": 0.002
+    "multiplierPerCore": 0.045
   },
   "sourceCode": {
     "baseDivisor": 300,
@@ -66,7 +135,7 @@
     "veryHardRatio": 10,
     "longRunDifficultyScale": 12,
     "coreWeight": 4,
-    "flowWeight": 2,
+    "ramWeight": 2,
     "minimumGain": 0
   },
   "reboot": {
@@ -78,15 +147,15 @@
     "mobileCellSize": 15,
     "desktopCellSize": 20,
     "baseDensity": 0.05,
-    "flowIdleDensity": 0.12,
+    "ramIdleDensity": 0.12,
     "tapDensityBoost": 0.04,
     "upgradeDensityBoost": 0.08,
-    "flowUpgradeDensityBoost": 0.16,
+    "ramUpgradeDensityBoost": 0.16,
     "rebootDensityBoost": 0.35,
     "maxDensity": 0.95,
     "densityDecayPerSecond": 0.12,
     "baseSpeed": 0.85,
-    "flowSpeed": 1.1,
+    "ramSpeed": 1.1,
     "tapSpeedBoost": 0.18,
     "maxTapSpeedBoost": 2.4,
     "speedDecayPerSecond": 0.7,
@@ -96,27 +165,27 @@
     "activeFadeAlpha": 0.18,
     "idleFadeAlpha": 0.58,
     "backgroundColor": "7, 9, 9",
-    "rainColor": "49, 255, 143",
+    "bufferColor": "49, 255, 143",
     "burstColor": "232, 255, 239",
     "columnMinSpeed": 48,
     "columnSpeedRange": 72,
-    "flowSpeedMultiplierMin": 0.85,
-    "flowSpeedMultiplierRange": 0.45,
-    "flowBrightnessMin": 0.72,
-    "flowBrightnessRange": 0.34,
+    "ramSpeedMultiplierMin": 0.85,
+    "ramSpeedMultiplierRange": 0.45,
+    "ramBrightnessMin": 0.72,
+    "ramBrightnessRange": 0.34,
     "columnResetRows": 8,
     "columnResetHeightRatio": 0.5,
-    "flowColumnMultiplier": 1.6,
+    "ramColumnMultiplier": 1.6,
     "baseTrail": 5,
     "columnTrailRange": 9,
     "densityTrailScale": 18,
     "densityAlphaScale": 0.6,
-    "flowAlphaFloor": 0.48,
+    "ramAlphaFloor": 0.48,
     "tapAlphaFloor": 0.18,
     "columnGlyphStride": 13,
     "rowGlyphStride": 7,
     "glyphChangeMs": 90,
-    "tapBrightRainChance": 0.05,
+    "tapBrightBufferChance": 0.05,
     "burstCount": 1,
     "burstLifetime": 4.5,
     "burstMinTrail": 5,
@@ -130,11 +199,11 @@
     "burstAlphaCutoff": 0.025,
     "burstGlyphStride": 11,
     "burstBrightRows": 2,
-    "glyphs": "01<>[]{}#/\\|+-=SYSFLOWCORENODECYCLECPUROOT"
+    "glyphs": "01<>[]{}#/\\|+-=SYSRAMCORENODEEXECUTIONCPUROOT"
   },
   "save": {
-    "key": "matrix-flow-save-v2",
-    "legacyKey": "matrix-flow-save-v1",
+    "key": "matrix-hashes-save-v1",
+    "legacyKey": "matrix-hashes-save-v0",
     "intervalMs": 2500
   }
 }

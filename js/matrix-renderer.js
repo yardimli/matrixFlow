@@ -9,7 +9,7 @@
     let cell = settings.desktopCellSize;
     let density = 0;
     let speedBoost = 0;
-    let flowing = false;
+    let ramActive = false;
 
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, settings.maxDevicePixelRatio);
@@ -42,15 +42,15 @@
     const resetColumn = (column, y = Math.random() * -height * settings.columnResetHeightRatio) => {
       column.y = y;
       column.speed = (settings.columnMinSpeed + Math.random() * settings.columnSpeedRange) * settings.baseSpeed;
-      column.flowSpeedMultiplier = settings.flowSpeedMultiplierMin + Math.random() * settings.flowSpeedMultiplierRange;
-      column.flowBrightness = settings.flowBrightnessMin + Math.random() * settings.flowBrightnessRange;
+      column.ramSpeedMultiplier = settings.ramSpeedMultiplierMin + Math.random() * settings.ramSpeedMultiplierRange;
+      column.ramBrightness = settings.ramBrightnessMin + Math.random() * settings.ramBrightnessRange;
       column.trailOffset = Math.floor(Math.random() * settings.columnTrailRange);
       column.spawnDensity = Math.max(settings.baseDensity, density);
       column.active = true;
     };
 
     const drawGlyph = (text, x, y, alpha, bright, bold) => {
-      ctx.fillStyle = bright ? `rgba(${settings.burstColor}, ${alpha})` : `rgba(${settings.rainColor}, ${alpha})`;
+      ctx.fillStyle = bright ? `rgba(${settings.burstColor}, ${alpha})` : `rgba(${settings.bufferColor}, ${alpha})`;
       ctx.font = `${bold ? "700 " : ""}${cell}px "Courier New", monospace`;
       ctx.fillText(text, x, y);
     };
@@ -59,13 +59,13 @@
     resize();
 
     return {
-      setFlowing(value) {
-        flowing = value;
+      setRamActive(value) {
+        ramActive = value;
       },
       pulse() {
         density = Math.min(settings.maxDensity, density + settings.tapDensityBoost);
         speedBoost = Math.min(settings.maxTapSpeedBoost, speedBoost + settings.tapSpeedBoost);
-        if (Math.random() > settings.tapBrightRainChance) return;
+        if (Math.random() > settings.tapBrightBufferChance) return;
         for (let i = 0; i < settings.burstCount; i += 1) {
           const trail = settings.burstMinTrail + Math.floor(Math.random() * settings.burstTrailRange);
           bursts.push({
@@ -83,21 +83,21 @@
         density = Math.min(settings.maxDensity, density + amount);
       },
       step(dt) {
-        const idleDensity = flowing ? settings.flowIdleDensity : 0;
+        const idleDensity = ramActive ? settings.ramIdleDensity : 0;
         density = Math.max(idleDensity, density - settings.densityDecayPerSecond * dt);
         speedBoost = Math.max(0, speedBoost - settings.speedDecayPerSecond * dt);
 
-        ctx.fillStyle = `rgba(${settings.backgroundColor}, ${flowing || density > settings.visibleDensityThreshold ? settings.activeFadeAlpha : settings.idleFadeAlpha})`;
+        ctx.fillStyle = `rgba(${settings.backgroundColor}, ${ramActive || density > settings.visibleDensityThreshold ? settings.activeFadeAlpha : settings.idleFadeAlpha})`;
         ctx.fillRect(0, 0, width, height);
-        if (!flowing && density <= settings.hiddenDensityThreshold && bursts.length === 0) return;
+        if (!ramActive && density <= settings.hiddenDensityThreshold && bursts.length === 0) return;
 
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
 
         columns.forEach((column, index) => {
           const activeDensity = Math.max(settings.baseDensity, density);
-          const shouldBeActive = flowing
-            ? column.threshold <= activeDensity * settings.flowColumnMultiplier
+          const shouldBeActive = ramActive
+            ? column.threshold <= activeDensity * settings.ramColumnMultiplier
             : column.threshold <= activeDensity;
 
           if (!column.active) {
@@ -105,8 +105,8 @@
             resetColumn(column);
           }
 
-          const flowSpeed = flowing ? settings.flowSpeed * column.flowSpeedMultiplier : 0;
-          column.y += column.speed * (settings.baseSpeed + flowSpeed + column.spawnDensity) * dt;
+          const ramSpeed = ramActive ? settings.ramSpeed * column.ramSpeedMultiplier : 0;
+          column.y += column.speed * (settings.baseSpeed + ramSpeed + column.spawnDensity) * dt;
           if (column.y > height + cell * settings.columnResetRows) {
             column.active = false;
             if (!shouldBeActive) return;
@@ -118,9 +118,9 @@
             const y = column.y - row * cell;
             if (y < -cell || y > height) continue;
             const glyph = glyphs[(index * settings.columnGlyphStride + row * settings.rowGlyphStride + Math.floor(performance.now() / settings.glyphChangeMs)) % glyphs.length];
-            const floor = flowing ? settings.flowAlphaFloor : settings.tapAlphaFloor;
+            const floor = ramActive ? settings.ramAlphaFloor : settings.tapAlphaFloor;
             const baseAlpha = Math.max(floor, (1 - row / trail) * (floor + column.spawnDensity * settings.densityAlphaScale));
-            const alpha = Math.min(1, flowing ? baseAlpha * column.flowBrightness : baseAlpha);
+            const alpha = Math.min(1, ramActive ? baseAlpha * column.ramBrightness : baseAlpha);
             drawGlyph(glyph, column.x, y, alpha, row === 0, false);
           }
         });

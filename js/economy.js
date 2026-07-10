@@ -19,7 +19,23 @@
       for (const legacy of legacyData) {
         if (state.legacies[legacy.id]) total += getLegacyEffectValue(legacy, key) * getLegacyPower();
       }
+      total += programEffectSum(key);
       return finiteNumber(total);
+    }
+
+    function programEffectSum(key) {
+      const program = getActiveProgram();
+      return finiteNumber(Number(program?.effects?.[key] || 0));
+    }
+
+    function getActiveProgram() {
+      const activeId = state.programs?.active;
+      if (!activeId || !state.programs?.unlocked?.[activeId]) return null;
+      return (config.programs?.items || []).find((program) => program.id === activeId) || null;
+    }
+
+    function getEffectiveCores() {
+      return finiteNumber(state.cores + programEffectSum("coreFlat"));
     }
 
     function getLegacyEffectValue(legacy, key) {
@@ -43,42 +59,41 @@
       }));
     }
 
-    function getCycleMultiplier() {
+    function getExecutionMultiplier() {
       return finiteNumber(Math.max(1, state.cpuMultiplier) *
-        (1 + state.cores * config.core.multiplierPerCore) *
-        (1 + state.totalSourceCode * config.core.sourceMultiplierPerLine));
+        (1 + getEffectiveCores() * config.core.multiplierPerCore));
     }
 
     function getRuntimeBreakdown() {
       const cpuMultiplier = Math.max(1, state.cpuMultiplier);
-      const coreMultiplier = 1 + state.cores * config.core.multiplierPerCore;
-      const memoryMultiplier = 1 + state.totalSourceCode * config.core.sourceMultiplierPerLine;
-      const cycleMultiplier = getCycleMultiplier();
+      const effectiveCores = getEffectiveCores();
+      const coreMultiplier = 1 + effectiveCores * config.core.multiplierPerCore;
+      const executionMultiplier = getExecutionMultiplier();
       const tapBase = getUpgradeIncome(config.upgradeTables?.tap, state.tapLevel - 1, true);
-      const flowBase = getUpgradeIncome(config.upgradeTables?.flow, state.flowLevel, false);
+      const ramBase = getUpgradeIncome(config.upgradeTables?.ram, state.ramLevel, false);
       const tapResearch = 1 + effectSum("tapMultiplier");
-      const flowResearch = 1 + effectSum("flowMultiplier");
+      const ramResearch = 1 + effectSum("ramMultiplier");
       const coreResearch = 1 + effectSum("coreMultiplier");
       const sourceResearch = 1 + effectSum("sourceMultiplier");
-      const flowRate = getFlowRate();
-      const cyclesPerTap = getCyclesPerTap();
+      const ramRate = getRamRate();
+      const executionsPerTap = getExecutionsPerTap();
       const coreTarget = getCoreTarget();
       const coreGain8 = Math.max(0, coreTarget - state.cores) * Math.min(1, 8 * config.core.convergenceRate);
       const sourceRate = getSourceCodeRate();
       return {
         cpuMultiplier,
+        effectiveCores,
         coreMultiplier,
-        memoryMultiplier,
-        cycleMultiplier,
+        executionMultiplier,
         tapBase,
-        flowBase,
+        ramBase,
         tapResearch,
-        flowResearch,
+        ramResearch,
         coreResearch,
         sourceResearch,
-        flowRate,
-        cyclesPerTap,
-        flowGain8: flowRate * 8,
+        ramRate,
+        executionsPerTap,
+        ramGain8: ramRate * 8,
         coreTarget,
         coreGain8,
         sourceRate,
@@ -87,22 +102,22 @@
       };
     }
 
-    function getCyclesPerTap() {
+    function getExecutionsPerTap() {
       const base = getUpgradeIncome(config.upgradeTables?.tap, state.tapLevel - 1, true);
-      return finiteNumber(base * getCycleMultiplier() * (1 + effectSum("tapMultiplier")));
+      return finiteNumber(base * getExecutionMultiplier() * (1 + effectSum("tapMultiplier")));
     }
 
-    function getFlowRate() {
-      const base = getUpgradeIncome(config.upgradeTables?.flow, state.flowLevel, false);
-      return finiteNumber(base * getCycleMultiplier() * (1 + effectSum("flowMultiplier")));
+    function getRamRate() {
+      const base = getUpgradeIncome(config.upgradeTables?.ram, state.ramLevel, false);
+      return finiteNumber(base * getExecutionMultiplier() * (1 + effectSum("ramMultiplier")));
     }
 
     function getCoreTarget() {
       const researchBoost = 1 + effectSum("coreMultiplier");
       const tapPart = Math.pow(Math.max(1, state.tapLevel), config.core.tapLevelPower);
-      const flowPart = Math.pow(Math.max(1, state.flowLevel + 1), config.core.flowLevelPower);
-      const cyclePart = Math.log1p(Math.max(0, decimalToNumber(state.lifetime.cycles)) / config.core.baseDivisor) / Math.LN2;
-      return finiteNumber(cyclePart * (tapPart + flowPart) * config.core.targetScale * researchBoost);
+      const ramPart = Math.pow(Math.max(1, state.ramLevel + 1), config.core.ramLevelPower);
+      const executionPart = Math.log1p(Math.max(0, decimalToNumber(state.lifetime.executions)) / config.core.baseDivisor) / Math.LN2;
+      return finiteNumber(executionPart * (tapPart + ramPart) * config.core.targetScale * researchBoost);
     }
 
     function getSourceDifficulty() {
@@ -115,9 +130,9 @@
     }
 
     function getSourceCodeRate() {
-      const productiveMass = Math.sqrt(Math.max(0, decimalToNumber(state.lifetime.cycles))) +
-        state.cores * config.sourceCode.coreWeight +
-        state.flowLevel * config.sourceCode.flowWeight;
+      const productiveMass = Math.sqrt(Math.max(0, decimalToNumber(state.lifetime.executions))) +
+        getEffectiveCores() * config.sourceCode.coreWeight +
+        state.ramLevel * config.sourceCode.ramWeight;
       return finiteNumber((productiveMass / config.sourceCode.baseDivisor) * (1 + effectSum("sourceMultiplier")) / getSourceDifficulty());
     }
 
@@ -134,8 +149,8 @@
       return getDiscountedUpgradeCost(getUpgradeTableCost(state.tapLevel, config.upgradeTables?.tap), "tapCostMultiplier");
     }
 
-    function getFlowCost() {
-      return getDiscountedUpgradeCost(getUpgradeTableCost(state.flowLevel + 1, config.upgradeTables?.flow), "flowCostMultiplier");
+    function getRamCost() {
+      return getDiscountedUpgradeCost(getUpgradeTableCost(state.ramLevel + 1, config.upgradeTables?.ram), "ramCostMultiplier");
     }
 
     function getDiscountedUpgradeCost(cost, key) {
@@ -179,32 +194,37 @@
       return state.total.taps >= config.unlocks.tapUpgradeClicks;
     }
 
-    function isFlowUnlocked() {
-      return D(state.total.cycles).gte(config.unlocks.flowCycles) && state.tapLevel >= config.unlocks.flowTapLevel;
+    function isRamUnlocked() {
+      return D(state.total.executions).gte(config.unlocks.ramExecutions) && state.tapLevel >= config.unlocks.ramTapLevel;
     }
 
-    function addCycles(amount) {
+    function addExecutions(amount) {
       const gain = finiteNumber(amount);
-      state.cycles = D(finiteDecimalString(state.cycles)).plus(gain).toString();
-      state.lifetime.cycles = D(finiteDecimalString(state.lifetime.cycles)).plus(gain).toString();
-      state.total.cycles = D(finiteDecimalString(state.total.cycles)).plus(gain).toString();
+      state.hashes = D(finiteDecimalString(state.hashes)).plus(gain).toString();
+      state.lifetime.hashes = D(finiteDecimalString(state.lifetime.hashes)).plus(gain).toString();
+      state.total.hashes = D(finiteDecimalString(state.total.hashes)).plus(gain).toString();
+      state.executions = D(finiteDecimalString(state.executions)).plus(gain).toString();
+      state.lifetime.executions = D(finiteDecimalString(state.lifetime.executions)).plus(gain).toString();
+      state.total.executions = D(finiteDecimalString(state.total.executions)).plus(gain).toString();
     }
 
     function getStat(stat) {
       const map = {
         totalTaps: state.total.taps,
         taps: state.lifetime.taps,
-        cycles: decimalToNumber(state.lifetime.cycles),
-        totalCycles: decimalToNumber(state.total.cycles),
-        flowLevel: state.flowLevel,
+        hashes: decimalToNumber(state.lifetime.hashes),
+        totalHashes: decimalToNumber(state.total.hashes),
+        executions: decimalToNumber(state.lifetime.executions),
+        totalExecutions: decimalToNumber(state.total.executions),
+        ramLevel: state.ramLevel,
         cores: state.lifetime.coresPeak,
         sourceCode: state.lifetime.sourceCode,
         totalSourceCode: state.totalSourceCode,
         time: state.lifetime.time,
         researchBought: state.lifetime.researchBought,
         totalResearchBought: state.total.researchBought,
-        firstFlowDownloadStarted: state.downloads?.firstFlow?.started ? 1 : 0,
-        firstFlowDownloadComplete: state.downloads?.firstFlow?.complete ? 1 : 0,
+        firstRamDownloadStarted: state.downloads?.firstRam?.started ? 1 : 0,
+        firstRamDownloadComplete: state.downloads?.firstRam?.complete ? 1 : 0,
         reboots: state.reboots
       };
       return finiteNumber(map[stat] || 0);
@@ -215,8 +235,10 @@
     }
 
     function conditionMet(condition) {
-      if (condition.stat === "totalCycles") return D(state.total.cycles).gte(condition.gte);
-      if (condition.stat === "cycles") return D(state.lifetime.cycles).gte(condition.gte);
+      if (condition.stat === "totalHashes") return D(state.total.hashes).gte(condition.gte);
+      if (condition.stat === "hashes") return D(state.lifetime.hashes).gte(condition.gte);
+      if (condition.stat === "totalExecutions") return D(state.total.executions).gte(condition.gte);
+      if (condition.stat === "executions") return D(state.lifetime.executions).gte(condition.gte);
       return getStat(condition.stat) >= Number(condition.gte || 0);
     }
 
@@ -224,21 +246,23 @@
       isResearchBought,
       effectSum,
       getLegacyEffects,
-      getCycleMultiplier,
+      getActiveProgram,
+      getEffectiveCores,
+      getExecutionMultiplier,
       getRuntimeBreakdown,
-      getCyclesPerTap,
-      getFlowRate,
+      getExecutionsPerTap,
+      getRamRate,
       getCoreTarget,
       getSourceDifficulty,
       getSourceCodeRate,
       getCpuMultiplier,
       getCpuMultiplierForSource,
       getTapCost,
-      getFlowCost,
+      getRamCost,
       getResearchCost,
       isTapUpgradeUnlocked,
-      isFlowUnlocked,
-      addCycles,
+      isRamUnlocked,
+      addExecutions,
       getStat,
       conditionMet
     };

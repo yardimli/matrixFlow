@@ -357,6 +357,93 @@ button:not(:disabled).can-afford.button-pressed,
   scrollbar-color: var(--cyan) rgba(255, 255, 255, 0.12);
 }
 
+.programs-page {
+  min-height: 100%;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  align-content: start;
+  gap: 12px;
+  padding: clamp(14px, 4vh, 44px) 0 0;
+}
+
+.programs-status {
+  min-height: clamp(46px, 10vh, 86px);
+  display: grid;
+  place-items: center;
+  color: var(--text);
+  font-size: clamp(1.2rem, 5vw, 2.45rem);
+  text-align: center;
+  text-shadow: 0 0 12px rgba(242, 245, 242, 0.24);
+}
+
+.programs-bar {
+  height: clamp(18px, 3.8vh, 28px);
+  border: 2px solid rgba(0, 216, 255, 0.78);
+  border-radius: 8px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 216, 255, 0.82) 0 3px,
+      rgba(0, 216, 255, 0.62) 3px 6px
+    );
+  box-shadow: var(--shadow-cyan), inset 0 0 0 1px rgba(232, 255, 239, 0.24);
+}
+
+.program-list {
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 2px;
+  scrollbar-color: var(--cyan) rgba(255, 255, 255, 0.12);
+}
+
+.program-card {
+  width: 100%;
+  min-height: clamp(132px, 18vh, 170px);
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 12px;
+  padding: 16px 12px;
+  border: 3px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel-strong);
+  color: var(--text);
+  text-align: center;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+
+.program-card strong {
+  font-size: clamp(1.12rem, 4vw, 1.65rem);
+  font-weight: 400;
+}
+
+.program-card small,
+.program-card span {
+  font-size: clamp(0.9rem, 3vw, 1.2rem);
+  line-height: 1.35;
+}
+
+.program-card span {
+  color: var(--cyan);
+  text-shadow: var(--shadow-cyan);
+}
+
+.program-running {
+  border-color: var(--cyan);
+  background: rgba(0, 216, 255, 0.12);
+  color: var(--cyan);
+  box-shadow: var(--shadow-cyan), inset 0 0 0 1px rgba(0, 216, 255, 0.18);
+}
+
+.program-blocked {
+  color: var(--disabled);
+}
+
 .can-afford {
   border-color: var(--cyan);
   color: var(--cyan);
