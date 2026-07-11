@@ -58,10 +58,10 @@
         "effects": { "coreFlat": 32 }
       },
       {
-        "id": "tap_vector",
-        "name": "tap vector",
-        "description": "Route each manual execution through a narrow vector path.",
-        "effects": { "tapMultiplier": 1.2 }
+        "id": "bot_swarm",
+        "name": "bot swarm",
+        "description": "Start 256 temporary bots that raise every production calculation while the program is running.",
+        "effects": { "botFlat": 256 }
       },
       {
         "id": "thread_daemon",
@@ -118,6 +118,9 @@
     "tapGrowth": 1.38,
     "ramBase": 125,
     "ramGrowth": 1.82
+  },
+  "bots": {
+    "efficiencyPerBot": 0.001
   },
   "core": {
     "baseDivisor": 180,
@@ -203,7 +206,7 @@
   },
   "save": {
     "key": "matrix-hashes-save-v1",
-    "legacyKey": "matrix-hashes-save-v0",
+    "previousKey": "matrix-hashes-save-v0",
     "intervalMs": 2500
   }
 }

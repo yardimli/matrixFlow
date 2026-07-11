@@ -1,7 +1,7 @@
 (function () {
   const { D, decimalToNumber, finiteNumber, finiteDecimalString } = window.MF.utils;
 
-  function createEconomy(config, researchData, legacyData, state) {
+  function createEconomy(config, researchData, backdoorData, state) {
     function isResearchBought(id) {
       return Boolean(state.research[id]);
     }
@@ -10,14 +10,14 @@
       return researchData.reduce((sum, item) => sum + (isResearchBought(item.id) ? 1 : 0) * Number(item.effects?.[key] || 0), 0);
     }
 
-    function getLegacyPower() {
-      return 1 + effectSumFromResearch("legacyMultiplier");
+    function getBackdoorPower() {
+      return 1 + effectSumFromResearch("backdoorMultiplier");
     }
 
     function effectSum(key) {
       let total = effectSumFromResearch(key);
-      for (const legacy of legacyData) {
-        if (state.legacies[legacy.id]) total += getLegacyEffectValue(legacy, key) * getLegacyPower();
+      for (const backdoor of backdoorData) {
+        if (state.backdoors[backdoor.id]) total += getBackdoorEffectValue(backdoor, key) * getBackdoorPower();
       }
       total += programEffectSum(key);
       return finiteNumber(total);
@@ -38,35 +38,52 @@
       return finiteNumber(state.cores + programEffectSum("coreFlat"));
     }
 
-    function getLegacyEffectValue(legacy, key) {
-      const reward = Number(legacy.effects?.[key] || 0);
-      if (!reward) return 0;
-      const scaling = legacy.scaling?.[key] || legacy.scaling;
-      if (!scaling?.stat || !scaling.divisor) return reward;
-      return finiteNumber(reward * getTaperedLegacyScale(getLifetimeStat(scaling.stat), scaling.divisor));
+    function getEffectiveBots() {
+      return finiteNumber(Math.max(0, Number(state.bots?.owned || 0) + Number(state.bots?.operator || 0) + programEffectSum("botFlat")));
     }
 
-    function getTaperedLegacyScale(value, divisor) {
+    function getOperatorTapMultiplier() {
+      if (state.operator?.choice !== "solitary") return 1;
+      return finiteNumber(Math.max(1, getEffectiveCores()));
+    }
+
+    function getBotEfficiencyMultiplier() {
+      return finiteNumber(1 + getEffectiveBots() * Number(config.bots?.efficiencyPerBot || 0));
+    }
+
+    function getBackdoorEffectValue(backdoor, key) {
+      const reward = Number(backdoor.effects?.[key] || 0);
+      if (!reward) return 0;
+      const scaling = backdoor.scaling?.[key] || backdoor.scaling;
+      if (!scaling?.stat || !scaling.divisor) return reward;
+      return finiteNumber(reward * getTaperedBackdoorScale(getLifetimeStat(scaling.stat), scaling.divisor));
+    }
+
+    function getTaperedBackdoorScale(value, divisor) {
       const scaled = finiteNumber(value) / Math.max(1, Number(divisor) || 1);
       return finiteNumber(Math.log1p(scaled) / Math.LN2);
     }
 
-    function getLegacyEffects(legacy) {
-      return Object.keys(legacy.effects || {}).map((key) => ({
+    function getBackdoorEffects(backdoor) {
+      return Object.keys(backdoor.effects || {}).map((key) => ({
         key,
-        value: getLegacyEffectValue(legacy, key),
-        scaling: legacy.scaling?.[key] || legacy.scaling || null
+        value: getBackdoorEffectValue(backdoor, key),
+        scaling: backdoor.scaling?.[key] || backdoor.scaling || null
       }));
     }
 
     function getExecutionMultiplier() {
       return finiteNumber(Math.max(1, state.cpuMultiplier) *
-        (1 + getEffectiveCores() * config.core.multiplierPerCore));
+        (1 + getEffectiveCores() * config.core.multiplierPerCore) *
+        getBotEfficiencyMultiplier());
     }
 
     function getRuntimeBreakdown() {
       const cpuMultiplier = Math.max(1, state.cpuMultiplier);
       const effectiveCores = getEffectiveCores();
+      const effectiveBots = getEffectiveBots();
+      const botEfficiency = getBotEfficiencyMultiplier();
+      const operatorTapMultiplier = getOperatorTapMultiplier();
       const coreMultiplier = 1 + effectiveCores * config.core.multiplierPerCore;
       const executionMultiplier = getExecutionMultiplier();
       const tapBase = getUpgradeIncome(config.upgradeTables?.tap, state.tapLevel - 1, true);
@@ -83,6 +100,9 @@
       return {
         cpuMultiplier,
         effectiveCores,
+        effectiveBots,
+        botEfficiency,
+        operatorTapMultiplier,
         coreMultiplier,
         executionMultiplier,
         tapBase,
@@ -104,7 +124,7 @@
 
     function getExecutionsPerTap() {
       const base = getUpgradeIncome(config.upgradeTables?.tap, state.tapLevel - 1, true);
-      return finiteNumber(base * getExecutionMultiplier() * (1 + effectSum("tapMultiplier")));
+      return finiteNumber(base * getExecutionMultiplier() * (1 + effectSum("tapMultiplier")) * getOperatorTapMultiplier());
     }
 
     function getRamRate() {
@@ -117,7 +137,7 @@
       const tapPart = Math.pow(Math.max(1, state.tapLevel), config.core.tapLevelPower);
       const ramPart = Math.pow(Math.max(1, state.ramLevel + 1), config.core.ramLevelPower);
       const executionPart = Math.log1p(Math.max(0, decimalToNumber(state.lifetime.executions)) / config.core.baseDivisor) / Math.LN2;
-      return finiteNumber(executionPart * (tapPart + ramPart) * config.core.targetScale * researchBoost);
+      return finiteNumber(executionPart * (tapPart + ramPart) * config.core.targetScale * researchBoost * getBotEfficiencyMultiplier());
     }
 
     function getSourceDifficulty() {
@@ -133,7 +153,7 @@
       const productiveMass = Math.sqrt(Math.max(0, decimalToNumber(state.lifetime.executions))) +
         getEffectiveCores() * config.sourceCode.coreWeight +
         state.ramLevel * config.sourceCode.ramWeight;
-      return finiteNumber((productiveMass / config.sourceCode.baseDivisor) * (1 + effectSum("sourceMultiplier")) / getSourceDifficulty());
+      return finiteNumber((productiveMass / config.sourceCode.baseDivisor) * (1 + effectSum("sourceMultiplier")) * getBotEfficiencyMultiplier() / getSourceDifficulty());
     }
 
     function getCpuMultiplier() {
@@ -217,6 +237,12 @@
         executions: decimalToNumber(state.lifetime.executions),
         totalExecutions: decimalToNumber(state.total.executions),
         ramLevel: state.ramLevel,
+        bots: getEffectiveBots(),
+        operator: state.operator?.unlocked ? 1 : 0,
+        operatorSocial: state.operator?.choice === "social" ? 1 : 0,
+        operatorSolitary: state.operator?.choice === "solitary" ? 1 : 0,
+        botsPeak: state.lifetime.botsPeak,
+        totalBotsPeak: state.total.botsPeak,
         cores: state.lifetime.coresPeak,
         sourceCode: state.lifetime.sourceCode,
         totalSourceCode: state.totalSourceCode,
@@ -235,6 +261,7 @@
     }
 
     function conditionMet(condition) {
+      if (Array.isArray(condition?.all)) return condition.all.every(conditionMet);
       if (condition.stat === "totalHashes") return D(state.total.hashes).gte(condition.gte);
       if (condition.stat === "hashes") return D(state.lifetime.hashes).gte(condition.gte);
       if (condition.stat === "totalExecutions") return D(state.total.executions).gte(condition.gte);
@@ -245,9 +272,12 @@
     return {
       isResearchBought,
       effectSum,
-      getLegacyEffects,
+      getBackdoorEffects,
       getActiveProgram,
       getEffectiveCores,
+      getEffectiveBots,
+      getBotEfficiencyMultiplier,
+      getOperatorTapMultiplier,
       getExecutionMultiplier,
       getRuntimeBreakdown,
       getExecutionsPerTap,

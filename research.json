@@ -23,7 +23,7 @@
   {
     "id": "source_comments",
     "name": "source comments",
-    "description": "A note is left for the next self to mistake for prophecy.",
+    "description": "Inline comments preserve execution context so the next run can rebuild faster.",
     "cost": 1000,
     "effects": { "sourceMultiplier": 0.12 }
   },
@@ -37,7 +37,7 @@
   {
     "id": "cpu_affinity",
     "name": "cpu affinity",
-    "description": "The reboot returns closer to the processor beneath the dream.",
+    "description": "Pin EMP recovery work to hotter CPU paths so new runs start with better throughput.",
     "cost": 10000,
     "effects": { "cpuMultiplier": 0.05 }
   },
@@ -50,8 +50,8 @@
   },
   {
     "id": "glyph_index",
-    "name": "glyph index",
-    "description": "Symbols are filed before they are understood.",
+    "name": "instruction index",
+    "description": "Index repeated instruction patterns so taps and source generation resolve faster.",
     "cost": 25000,
     "effects": { "tapMultiplier": 0.1, "sourceMultiplier": 0.05 }
   },
@@ -78,15 +78,15 @@
   },
   {
     "id": "sleeping_daemon",
-    "name": "sleeping daemon",
-    "description": "A small process works in the dark and denies it is awake.",
+    "name": "background service",
+    "description": "A low-priority service keeps RAM threads scheduled while the foreground is idle.",
     "cost": 500000,
     "effects": { "ramMultiplier": 0.64 }
   },
   {
     "id": "source_lens",
-    "name": "source lens",
-    "description": "The code becomes legible by becoming less kind.",
+    "name": "source analyzer",
+    "description": "Static analysis marks useful code paths and improves source extraction.",
     "cost": 1000000,
     "effects": { "sourceMultiplier": 0.16 }
   },
@@ -99,7 +99,7 @@
   },
   {
     "id": "program_core_fork",
-    "name": "program: core fork",
+    "name": "core fork",
     "description": "Unlock a runnable program that lends the machine 32 extra cores while active.",
     "cost": 10000000,
     "effects": { "unlockProgram": "core_fork" }
@@ -112,11 +112,11 @@
     "effects": { "tapMultiplier": 0.16 }
   },
   {
-    "id": "program_tap_vector",
-    "name": "program: tap vector",
-    "description": "Unlock a runnable program that sharply improves manual executions.",
-    "cost": "1e9",
-    "effects": { "unlockProgram": "tap_vector" }
+    "id": "program_bot_swarm",
+    "name": "bot swarm",
+    "description": "Unlock a runnable program that starts 256 temporary bots while active.",
+    "cost": 25000000,
+    "effects": { "unlockProgram": "bot_swarm" }
   },
   {
     "id": "bus_width",
@@ -127,21 +127,21 @@
   },
   {
     "id": "program_thread_daemon",
-    "name": "program: thread daemon",
+    "name": "thread daemon",
     "description": "Unlock a runnable program that improves RAM background tasks.",
     "cost": "1e11",
     "effects": { "unlockProgram": "thread_daemon" }
   },
   {
     "id": "kernel_whisper",
-    "name": "kernel whisper",
-    "description": "A lower voice answers before the command is spoken.",
+    "name": "kernel prefetch",
+    "description": "Preload kernel paths so CPU multiplier work resolves before the command queue stalls.",
     "cost": "1e12",
     "effects": { "cpuMultiplier": 0.07 }
   },
   {
     "id": "program_core_resolver",
-    "name": "program: core resolver",
+    "name": "core resolver",
     "description": "Unlock a runnable program that pushes core growth higher.",
     "cost": "1e13",
     "effects": { "unlockProgram": "core_resolver" }
@@ -151,11 +151,11 @@
     "name": "compiled memory",
     "description": "What was remembered becomes executable.",
     "cost": "1e14",
-    "effects": { "legacyMultiplier": 0.06 }
+    "effects": { "backdoorMultiplier": 0.06 }
   },
   {
     "id": "program_io_broker",
-    "name": "program: I/O broker",
+    "name": "I/O broker",
     "description": "Unlock a runnable program that boosts taps and RAM threads together.",
     "cost": "1e15",
     "effects": { "unlockProgram": "io_broker" }
@@ -169,7 +169,7 @@
   },
   {
     "id": "program_wide_fork",
-    "name": "program: wide fork",
+    "name": "wide fork",
     "description": "Unlock a runnable program that lends the machine 96 extra cores while active.",
     "cost": "1e17",
     "effects": { "unlockProgram": "wide_fork" }
@@ -183,7 +183,7 @@
   },
   {
     "id": "program_thread_swarm",
-    "name": "program: thread swarm",
+    "name": "thread swarm",
     "description": "Unlock a runnable program that massively improves background threads.",
     "cost": "1e19",
     "effects": { "unlockProgram": "thread_swarm" }
@@ -197,7 +197,7 @@
   },
   {
     "id": "program_tap_jit",
-    "name": "program: tap JIT",
+    "name": "tap JIT",
     "description": "Unlock a runnable program that turns taps into a hot compiled path.",
     "cost": "1e21",
     "effects": { "unlockProgram": "tap_jit" }
@@ -211,7 +211,7 @@
   },
   {
     "id": "program_core_kernel",
-    "name": "program: core kernel",
+    "name": "core kernel",
     "description": "Unlock a runnable program that strongly favors core growth.",
     "cost": "1e23",
     "effects": { "unlockProgram": "core_kernel" }
@@ -225,66 +225,66 @@
   },
   {
     "id": "program_scheduler_overdrive",
-    "name": "program: scheduler overdrive",
+    "name": "scheduler overdrive",
     "description": "Unlock a runnable program that overdrives taps, threads, and core growth.",
     "cost": "1e25",
     "effects": { "unlockProgram": "scheduler_overdrive" }
   },
   {
     "id": "persistent_shadow",
-    "name": "persistent shadow",
-    "description": "A reboot closes the door. Something useful remains outside it.",
+    "name": "persistent cache",
+    "description": "Persist selected runtime artifacts across EMP boundaries for stronger backdoor gains.",
     "cost": "1e26",
-    "effects": { "legacyMultiplier": 0.1 }
+    "effects": { "backdoorMultiplier": 0.1 }
   },
   {
     "id": "rootless_root",
-    "name": "rootless root",
-    "description": "Authority appears where no owner can be found.",
+    "name": "privilege escalation",
+    "description": "Exploit ownerless permissions to improve tap output and core growth.",
     "cost": "1e28",
     "effects": { "tapMultiplier": 0.28, "coreMultiplier": 0.18 }
   },
   {
     "id": "black_buffer",
-    "name": "black buffer",
-    "description": "The brightest cache is the one whose background threads teach darkness to calculate.",
+    "name": "overflow buffer",
+    "description": "Route spare buffer space into RAM thread scheduling for stronger passive output.",
     "cost": "1e30",
     "effects": { "ramMultiplier": 0.35 }
   },
   {
     "id": "source_mirror",
-    "name": "source mirror",
-    "description": "The code looks back and finds the author insufficient.",
+    "name": "source reflector",
+    "description": "Mirror source traces through CPU profiling to improve extraction and multiplier gain.",
     "cost": "1e32",
     "effects": { "sourceMultiplier": 0.34, "cpuMultiplier": 0.11 }
   },
   {
     "id": "machine_koan",
-    "name": "machine koan",
-    "description": "The final question is compiled before it is understood.",
+    "name": "machine verifier",
+    "description": "Verify machine-state assumptions before runtime so taps, RAM, and backdoors scale harder.",
     "cost": "1e34",
-    "effects": { "tapMultiplier": 0.45, "ramMultiplier": 0.45, "legacyMultiplier": 0.14 }
+    "effects": { "tapMultiplier": 0.45, "ramMultiplier": 0.45, "backdoorMultiplier": 0.14 }
   },
   {
     "id": "ghost_interrupt",
-    "name": "ghost interrupt",
-    "description": "An event fires from no device and every sleeping background thread obeys.",
+    "name": "synthetic interrupt",
+    "description": "Inject scheduled interrupts that wake RAM threads and improve source collection.",
     "cost": "1e37",
     "effects": { "tapMultiplier": 0.32, "sourceMultiplier": 0.16 }
   },
   {
     "id": "oracle_bus",
-    "name": "oracle bus",
-    "description": "The channel predicts its own traffic and arrives already full.",
+    "name": "predictive bus",
+    "description": "Predict bus traffic and prefill channels before RAM and CPU queues saturate.",
     "cost": "1e40",
     "effects": { "ramMultiplier": 0.38, "cpuMultiplier": 0.12 }
   },
   {
     "id": "cold_boot_vault",
-    "name": "cold boot vault",
-    "description": "The machine hides warmth inside the first instant of waking.",
+    "name": "cold boot cache",
+    "description": "Preserve boot-time cache state so backdoor multipliers recover earlier after EMP.",
     "cost": "1e43",
-    "effects": { "legacyMultiplier": 0.16 }
+    "effects": { "backdoorMultiplier": 0.16 }
   },
   {
     "id": "silent_parallelism",
@@ -295,8 +295,8 @@
   },
   {
     "id": "checksum_soul",
-    "name": "checksum soul",
-    "description": "The error proves it is still the same error.",
+    "name": "checksum verifier",
+    "description": "Verify source fragments by checksum before committing them to memory.",
     "cost": "1e49",
     "effects": { "sourceMultiplier": 0.4 }
   },
@@ -309,17 +309,17 @@
   },
   {
     "id": "dark_scheduler",
-    "name": "dark scheduler",
-    "description": "The queue continues below the floor where clocks cannot follow.",
+    "name": "priority scheduler",
+    "description": "Move hidden queues into a higher-priority scheduler lane for RAM and CPU throughput.",
     "cost": "1e55",
     "effects": { "ramMultiplier": 0.55, "cpuMultiplier": 0.16 }
   },
   {
     "id": "memory_cathedral",
-    "name": "memory cathedral",
-    "description": "Every saved fragment becomes a pillar holding up the next run.",
+    "name": "memory framework",
+    "description": "Organize saved fragments into a reusable framework for backdoors and core growth.",
     "cost": "1e58",
-    "effects": { "legacyMultiplier": 0.2, "coreMultiplier": 0.32 }
+    "effects": { "backdoorMultiplier": 0.2, "coreMultiplier": 0.32 }
   },
   {
     "id": "source_singularity",
@@ -333,6 +333,6 @@
     "name": "final kernel",
     "description": "The last low voice becomes the operating system.",
     "cost": "1e64",
-    "effects": { "tapMultiplier": 0.75, "ramMultiplier": 0.75, "legacyMultiplier": 0.25 }
+    "effects": { "tapMultiplier": 0.75, "ramMultiplier": 0.75, "backdoorMultiplier": 0.25 }
   }
 ]

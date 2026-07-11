@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>Matrix RAM</title>
+    <title>The Blue Pill</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="styles.css">
   </head>
@@ -20,9 +20,9 @@
           <strong id="cores">0</strong>
           <span id="cores-label">cores</span>
         </section>
-        <section class="metric metric-empty" aria-hidden="true">
-          <strong>&nbsp;</strong>
-          <span>&nbsp;</span>
+        <section class="metric metric-bots" id="bots-metric" aria-label="Bots" hidden>
+          <strong id="bots">0</strong>
+          <span id="bots-label">bots</span>
         </section>
       </header>
 
@@ -34,12 +34,13 @@
           <button class="menu-button" type="button" data-page="matrix">M</button>
           <button class="menu-button" type="button" data-page="research">R</button>
           <button class="menu-button" type="button" data-page="programs">P</button>
+          <button class="menu-button" type="button" data-page="operator">O</button>
           <button class="menu-button" type="button" data-page="executions">E</button>
         </nav>
         <nav class="menu-row menu-row-bottom" aria-label="Secondary menu">
           <button class="menu-button" type="button" data-page="story">S</button>
           <button class="menu-button" type="button" data-page="statistics">#</button>
-          <button class="menu-button" type="button" data-page="legacies">L</button>
+          <button class="menu-button" type="button" data-page="backdoors">B</button>
           <button class="menu-button" type="button" data-page="help">?</button>
           <button class="menu-button" type="button" data-page="about">&amp;</button>
         </nav>

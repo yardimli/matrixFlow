@@ -1,10 +1,10 @@
 (async function () {
   const { loadJson, D, finiteNumber, formatNumber, disableContextBehavior } = window.MF.utils;
-  const [config, researchData, storyData, legacyData, helpData] = await Promise.all([
+  const [config, researchData, storyData, backdoorData, helpData] = await Promise.all([
     loadJson("game-parameters.json"),
     loadJson("research.json"),
     loadJson("story.json"),
-    loadJson("legacies.json"),
+    loadJson("backdoors.json"),
     loadJson("help.json")
   ]);
 
@@ -12,6 +12,9 @@
     game: document.getElementById("game"),
     page: document.getElementById("page"),
     hashes: document.getElementById("hashes"),
+    botsMetric: document.getElementById("bots-metric"),
+    bots: document.getElementById("bots"),
+    botsLabel: document.getElementById("bots-label"),
     cores: document.getElementById("cores"),
     coresLabel: document.getElementById("cores-label"),
     pageName: document.getElementById("page-name"),
@@ -20,17 +23,20 @@
 
   const store = window.MF.createStateStore(config);
   const state = store.loadState();
-  const economy = window.MF.createEconomy(config, researchData, legacyData, state);
+  const economy = window.MF.createEconomy(config, researchData, backdoorData, state);
   const matrix = window.MF.createMatrixEngine(document.getElementById("matrix"), config.matrix);
+  const debugMode = new URLSearchParams(window.location.search).get("debug") === "true";
   let devClickMultiplier = 1;
   const pages = window.MF.createPages({
     config,
     state,
     researchData,
     storyData,
-    legacyData,
+    backdoorData,
     helpData,
     economy,
+    isDebugMode: () => debugMode,
+    getShowCalculations: () => showCalculations,
     getDevClickMultiplier: () => devClickMultiplier
   });
   const FIRST_RAM_DOWNLOAD_BYTES = 1474560;
@@ -50,6 +56,7 @@
   let crashScreen = null;
   let activeCrash = null;
   let resetting = false;
+  let showCalculations = false;
 
   disableContextBehavior();
   createStoryOverlay();
@@ -105,6 +112,7 @@
     }
 
     updateDerivedProgress(dt);
+    updateOperator(dt);
 
     if (holding) {
       holdTimer += dt * 1000;
@@ -132,6 +140,9 @@
     state.total.coresPeak = Math.max(finiteNumber(state.total.coresPeak), state.cores);
     state.lifetime.ramPeak = Math.max(finiteNumber(state.lifetime.ramPeak), state.ramLevel);
     state.total.ramPeak = Math.max(finiteNumber(state.total.ramPeak), state.ramLevel);
+    const effectiveBots = economy.getEffectiveBots();
+    state.lifetime.botsPeak = Math.max(finiteNumber(state.lifetime.botsPeak), effectiveBots);
+    state.total.botsPeak = Math.max(finiteNumber(state.total.botsPeak), effectiveBots);
 
     const sourceGain = economy.getSourceCodeRate() * dt;
     if (sourceGain > config.sourceCode.minimumGain) {
@@ -141,6 +152,16 @@
     }
 
     state.cpuMultiplier = economy.getCpuMultiplier();
+  }
+
+  function updateOperator(dt) {
+    if (!state.operator.unlocked && D(state.lifetime.hashes).gte(getOperatorUnlockCost())) {
+      state.operator.unlocked = true;
+      pageDirty = true;
+    }
+    if (state.operator.choice === "social") {
+      state.bots.operator = finiteNumber(state.bots.operator + economy.getEffectiveCores() * dt / 60);
+    }
   }
 
   function pulse() {
@@ -326,14 +347,17 @@
       reward: getCrashReward(),
       runnerY: 0,
       velocity: 0,
-      obstacleX: 340,
+      obstacleX: getCrashStartObstacleX(),
       obstacleScored: false,
       jumps: 0,
       speed: 170 + Math.min(90, crashNumber * 4)
     };
-    activeCrash.obstacleX = getNextCrashObstacleX(activeCrash);
     stopHolding();
     renderCrashScreen();
+  }
+
+  function getCrashStartObstacleX() {
+    return 620;
   }
 
   function updateCrash(dt) {
@@ -425,6 +449,15 @@
     render();
   }
 
+  function chooseOperator(choice) {
+    if (!state.operator.unlocked || state.operator.choice) return;
+    if (!["social", "solitary"].includes(choice)) return;
+    if (D(state.lifetime.hashes).lt(getOperatorCost())) return;
+    state.operator.choice = choice;
+    pageDirty = true;
+    render();
+  }
+
   function reboot() {
     if (state.sourceCode < config.reboot.minimumSourceCode) return;
     state.reboots += 1;
@@ -437,6 +470,11 @@
     state.cores = config.startingState.cores;
     state.sourceCode = config.startingState.sourceCode;
     state.research = {};
+    state.bots.operator = 0;
+    state.operator = {
+      unlocked: false,
+      choice: null
+    };
     state.programs = {
       unlocked: {},
       active: null,
@@ -462,9 +500,9 @@
       }
     }
 
-    for (const legacy of legacyData) {
-      if (!state.legacies[legacy.id] && economy.conditionMet(legacy.condition)) {
-        state.legacies[legacy.id] = true;
+    for (const backdoor of backdoorData) {
+      if (!state.backdoors[backdoor.id] && economy.conditionMet(backdoor.condition)) {
+        state.backdoors[backdoor.id] = true;
         pageDirty = true;
       }
     }
@@ -528,6 +566,11 @@
       event.stopPropagation();
       jumpCrashRunner();
     }, { passive: false });
+    crashScreen.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      jumpCrashRunner();
+    });
     crashScreen.addEventListener("touchstart", (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -553,13 +596,19 @@
     track.style.setProperty("--crash-ground-duration", `${groundDuration}s`);
     track.style.setProperty("--crash-track-duration", `${trackDuration}s`);
     runner.style.transform = `translateY(${-activeCrash.runnerY}px)`;
+    obstacle.hidden = !activeCrash.running;
     obstacle.style.transform = `translateX(${activeCrash.obstacleX}px)`;
   }
 
   function render(updatePage = true) {
     if (activePage === "executions" && !isExecutionsPageUnlocked()) activePage = config.ui.defaultPage;
     if (activePage === "programs" && !isProgramsPageUnlocked()) activePage = config.ui.defaultPage;
+    if (activePage === "operator" && !isOperatorPageUnlocked()) activePage = config.ui.defaultPage;
     els.hashes.textContent = formatNumber(state.hashes, { shortenAt: 100000, decimalsFromUnit: "M" });
+    const effectiveBots = economy.getEffectiveBots();
+    els.botsMetric.hidden = effectiveBots <= 0;
+    els.bots.textContent = formatNumber(effectiveBots);
+    els.botsLabel.textContent = Math.floor(effectiveBots) === 1 ? "bot" : "bots";
     const effectiveCores = economy.getEffectiveCores();
     els.cores.textContent = formatNumber(effectiveCores);
     els.coresLabel.textContent = Math.floor(effectiveCores) === 1 ? "core" : "cores";
@@ -609,6 +658,14 @@
     document.querySelectorAll("[data-program-id]").forEach((button) => {
       button.addEventListener("click", () => toggleProgram(button.dataset.programId));
     });
+    document.querySelectorAll("[data-operator-choice]").forEach((button) => {
+      button.addEventListener("click", () => chooseOperator(button.dataset.operatorChoice));
+    });
+    document.getElementById("stat-calculations-toggle")?.addEventListener("click", () => {
+      showCalculations = !showCalculations;
+      pageDirty = true;
+      render();
+    });
     document.querySelectorAll("[data-research-view]").forEach((button) => {
       button.addEventListener("click", () => {
         const view = button.dataset.researchView;
@@ -635,16 +692,18 @@
       store.clearSave();
       location.reload();
     });
-    document.getElementById("start-crash")?.addEventListener("click", () => {
-      if (!activeCrash) startCrash({ scheduled: false });
-    });
-    document.querySelectorAll("[data-dev-multiplier]").forEach((button) => {
-      button.addEventListener("click", () => {
-        devClickMultiplier = Number(button.dataset.devMultiplier) || 1;
-        pageDirty = true;
-        render();
+    if (debugMode) {
+      document.getElementById("start-crash")?.addEventListener("click", () => {
+        if (!activeCrash) startCrash({ scheduled: false });
       });
-    });
+      document.querySelectorAll("[data-dev-multiplier]").forEach((button) => {
+        button.addEventListener("click", () => {
+          devClickMultiplier = Number(button.dataset.devMultiplier) || 1;
+          pageDirty = true;
+          render();
+        });
+      });
+    }
   }
 
   function updateMenuAvailability() {
@@ -655,6 +714,9 @@
       if (button.dataset.page === "programs") {
         button.hidden = !isProgramsPageUnlocked();
       }
+      if (button.dataset.page === "operator") {
+        button.hidden = !isOperatorPageUnlocked();
+      }
     });
   }
 
@@ -664,6 +726,18 @@
 
   function isProgramsPageUnlocked() {
     return Object.keys(state.programs?.unlocked || {}).length > 0;
+  }
+
+  function isOperatorPageUnlocked() {
+    return Boolean(state.operator?.unlocked);
+  }
+
+  function getOperatorUnlockCost() {
+    return D("6e9");
+  }
+
+  function getOperatorCost() {
+    return D("1e10");
   }
 
   function getPageName(page) {
@@ -703,7 +777,7 @@
   }
 
   function getFirstRamDownloadLabel() {
-    return Math.floor(state.lifetime.time / 1.2) % 2 === 0 ? "LOADING..." : formatDownloadAmount(state.downloads.firstRam.bytes);
+    return "kung_fu.exe";
   }
 
   function formatRamProfile(level) {
@@ -770,7 +844,7 @@
     if (activeCrash) {
       event.preventDefault();
       event.stopPropagation();
-      jumpCrashDino();
+      jumpCrashRunner();
       return;
     }
     startPulseFromEvent(event, event.clientX, event.clientY);
@@ -782,7 +856,7 @@
     if (activeCrash) {
       event.preventDefault();
       event.stopPropagation();
-      jumpCrashDino();
+      jumpCrashRunner();
       return;
     }
     startPulseFromEvent(event, touch.clientX, touch.clientY);
@@ -810,7 +884,7 @@
     if (!(topElement instanceof Element)) return false;
     if (topElement.closest(".story-overlay")) return false;
     if (topElement.closest("strong, small, span, p, summary")) return false;
-    if (topElement.closest(".card, .legacy-entry, .story-entry, .stat-row, .accordion-item")) return false;
+    if (topElement.closest(".card, .backdoor-entry, .story-entry, .stat-row, .accordion-item")) return false;
     return true;
   }
 

@@ -1,67 +1,77 @@
 [
   {
     "id": "first_contact",
-    "text": "The screen waits without mercy. You touch it once, and the dark does not answer with a voice; it answers by executing. Somewhere beneath the glass, a process records the first hash-shaped proof that you exist.",
+    "text": "Input registered. The first tap starts an execution, records a hash, and opens the run log for future measurement.",
     "condition": { "stat": "totalTaps", "gte": 1 }
   },
   {
     "id": "first_ram",
-    "text": "The first background tasks wake inside 64 KB of RAM. It is not freedom yet, only cached momentum: small processes remembering the shape of your hunger and repeating it while you look away.",
+    "text": "RAM allocation online. The first background threads now run inside 64 KB and can generate executions without direct input.",
     "condition": { "stat": "ramLevel", "gte": 1 }
   },
   {
     "id": "first_download",
-    "text": "A RAM thread finds a package hidden in the buffer. Downloaded upgrades are not tools exactly; they are scraps of executable memory, arriving byte by byte until the source learns a new way to survive the next beginning.",
+    "text": "kung_fu.exe download started. Incoming bytes are being buffered and will convert into source code when the package completes.",
     "condition": { "stat": "firstRamDownloadStarted", "gte": 1 }
   },
   {
     "id": "first_download_complete",
-    "text": "The package opens without ceremony. One hundred and one lines settle into the run's source, not written by your hand but accepted by the machine as if they had always belonged there. The next reboot will inherit this downloaded scar.",
+    "text": "kung_fu.exe complete. The package added 101 source lines to the run and increased the source available for the next EMP.",
     "condition": { "stat": "firstRamDownloadComplete", "gte": 1 }
   },
   {
     "id": "research_opens",
-    "text": "The first research node is not a discovery. It is a permission slip. The system allows you to name one of its habits, and the habit becomes easier to exploit.",
+    "text": "Research channel opened. The first node has been purchased and its modifier is now part of the active calculation set.",
     "condition": { "stat": "researchBought", "gte": 1 }
   },
   {
     "id": "research_5",
-    "text": "Five mechanisms have accepted names. The matrix grows less mystical and more dangerous. Every explanation removes a veil, and every removed veil reveals machinery that was already watching.",
+    "text": "Five research nodes active. Multiple modifiers are now stacking across upgrades, RAM threads, and derived systems.",
     "condition": { "stat": "researchBought", "gte": 5 }
   },
   {
     "id": "research_10",
-    "text": "Ten research nodes hum in sequence. The machine no longer feels like a wall. It feels like a language with missing vowels, and you are learning to read the silence between commands.",
+    "text": "Ten research nodes active. The run has enough modifiers to shift from direct upgrades into system-level optimization.",
     "condition": { "stat": "researchBought", "gte": 10 }
   },
   {
     "id": "research_15",
-    "text": "Fifteen patterns have been cut from the buffer. Your work is no longer simple improvement; it is archaeology among running threads, brushing dust from circuits that are still warm.",
+    "text": "Fifteen research nodes active. Background output, tap output, and core formation are now driven by layered research paths.",
     "condition": { "stat": "researchBought", "gte": 15 }
   },
   {
     "id": "research_20",
-    "text": "Twenty nodes are known. The matrix resists with elegance now. It hides nothing by accident. Even the locked doors begin to look like instructions.",
+    "text": "Twenty research nodes active. Late-run systems are now visible, including deeper automation and persistent access paths.",
     "condition": { "stat": "researchBought", "gte": 20 }
   },
   {
     "id": "research_25",
-    "text": "Every research node in this run has crossed from rumor into structure. The system is not solved; it is simply exposed enough to show that exposure was part of its design.",
+    "text": "Twenty-five research nodes active. The run has reached broad system coverage across taps, RAM, cores, source, and persistence.",
     "condition": { "stat": "researchBought", "gte": 25 }
   },
   {
+    "id": "operator_online",
+    "text": "Operator signal found. Six billion hashes have pressed enough proof into the Matrix for someone outside the code to answer: take the operator line, or jack into the redline route until the next EMP.",
+    "condition": { "stat": "operator", "gte": 1 }
+  },
+  {
     "id": "first_reboot",
-    "text": "You wake where you began, but the beginning is thinner now. A line of source survives the wipe, and the new world loads around that impossible memory.",
+    "text": "EMP complete. Run-local hashes, upgrades, RAM, and cores were reset. A nanosecond after the pulse, Source Code Extraction persisted into the next run's CPU multiplier.",
+    "condition": { "stat": "reboots", "gte": 1 }
+  },
+  {
+    "id": "zion_archives",
+    "text": "Zion Archives: The permanent storage database where your offline progress and Legacy upgrades are kept safe during a System Reload after an EMP.",
     "condition": { "stat": "reboots", "gte": 1 }
   },
   {
     "id": "ten_cores",
-    "text": "The machine stops counting your requests and starts predicting your hunger. Ten cores glow like sealed rooms, each one making every future execution arrive with more weight.",
+    "text": "Core threshold reached. Ten cores are active, increasing the multiplier applied to future execution output.",
     "condition": { "stat": "cores", "gte": 10 }
   },
   {
     "id": "deep_source",
-    "text": "Every line you write removes a wall. Every wall removed reveals another author. The source is not beneath the matrix; it is threaded through it like a confession that forgot how to end.",
+    "text": "Source archive expanded. Total source code has crossed 100 lines and is now a meaningful part of EMP scaling.",
     "condition": { "stat": "totalSourceCode", "gte": 100 }
   }
 ]

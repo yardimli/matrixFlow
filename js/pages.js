@@ -2,7 +2,7 @@
   const { D, formatNumber, formatTime } = window.MF.utils;
 
   function createPages(context) {
-    const { config, state, researchData, storyData, legacyData, helpData, economy, getDevClickMultiplier } = context;
+    const { config, state, researchData, storyData, backdoorData, helpData, economy, isDebugMode, getDevClickMultiplier, getShowCalculations } = context;
     const FIRST_RAM_DOWNLOAD_BYTES = 1474560;
     const WHOLE_EXPONENTIAL = { scientificDecimals: 0 };
 
@@ -18,8 +18,8 @@
             ${renderFirstRamDownload()}
           </section>
           <section class="upgrade-stack" aria-label="Upgrades">
-            ${renderUpgrade("tap-upgrade", tapUnlocked, D(state.hashes).gte(tapCost), maxBuyUnlocked, "executions / tap", `+${formatNumber(economy.getExecutionsPerTap())} executions / tap`, `level ${state.tapLevel}`, `cost ${formatNumber(tapCost, { shortenAt: 100000 })} hashes`)}
-            ${renderUpgrade("ram-upgrade", ramUnlocked, D(state.hashes).gte(ramCost), maxBuyUnlocked, "RAM", `<span id="live-ram">${formatRamProfile(state.ramLevel)}</span>`, `level ${state.ramLevel}`, `cost ${formatNumber(ramCost, { shortenAt: 100000 })} hashes`)}
+            ${renderUpgrade("tap-upgrade", tapUnlocked, D(state.hashes).gte(tapCost), maxBuyUnlocked, "executions / tap", `+${formatNumber(economy.getExecutionsPerTap())} executions / tap`, `level ${state.tapLevel}`, `cost ${formatNumber(tapCost, { shortenAt: 100000 })}`)}
+            ${renderUpgrade("ram-upgrade", ramUnlocked, D(state.hashes).gte(ramCost), maxBuyUnlocked, "RAM", `<span id="live-ram">${formatRamProfile(state.ramLevel)}</span>`, `level ${state.ramLevel}`, `cost ${formatNumber(ramCost, { shortenAt: 100000 })}`)}
           </section>
         </div>
       `;
@@ -45,7 +45,7 @@
     }
 
     function getDownloadLabel(download) {
-      return Math.floor(state.lifetime.time / 1.2) % 2 === 0 ? "LOADING..." : formatDownloadAmount(download.bytes);
+      return "kung_fu.exe";
     }
 
     function formatDownloadAmount(bytes) {
@@ -93,7 +93,7 @@
       return `
         <button class="card actionable ${canAfford ? "can-afford" : ""}" data-research-id="${item.id}" type="button" ${canAfford ? "" : "disabled"}>
           <span class="research-copy"><strong>${item.name}</strong><small>${item.description}</small></span>
-          <span class="research-card-footer"><small>${effectText(item.effects)}</small><small>cost ${formatNumber(cost, WHOLE_EXPONENTIAL)} hashes</small></span>
+          <span class="research-card-footer"><small>${effectText(item.effects)}</small><small>${formatNumber(cost, WHOLE_EXPONENTIAL)}</small></span>
         </button>
       `;
     }
@@ -103,7 +103,7 @@
       return `
         <article class="card can-afford">
           <span class="research-copy"><strong>${item.name}</strong><small>${item.description}</small></span>
-          <span class="research-card-footer"><small>${effectText(item.effects)}</small><small>cost ${formatNumber(cost, WHOLE_EXPONENTIAL)} hashes</small></span>
+          <span class="research-card-footer"><small>${effectText(item.effects)}</small><small>${formatNumber(cost, WHOLE_EXPONENTIAL)}</small></span>
         </article>
       `;
     }
@@ -119,11 +119,11 @@
       const sourceRate = formatNumber(economy.getSourceCodeRate() * 60);
       return `
         <section class="reboot-page">
-          <p>Abandon this execution, record the fragments that survived it, and let another process wake with your errors already compiled.</p>
-          <p>Memory contains <span>${currentSource}</span> source lines, multiplying this run's execution gain by <span>${currentCpu}</span>.</p>
-          <p>If you reboot now, this run adds <span>${runSource}</span> lines to memory, increasing the next CPU multiplier by <span>${runCpuGain}</span>.</p>
-          <p class="reboot-small">writing <span>${sourceRate}</span> lines each minute - difficulty ${difficulty}</p>
-          <button class="reboot-button" id="reboot-button" type="button" ${state.sourceCode >= 1 ? "" : "disabled"}>reboot</button>
+          <p>EMP (Electromagnetic Pulse) resets the current run.</p>
+          <p>ROM contains <span>${currentSource}</span> source lines, giving this run a CPU multiplier of <span>${currentCpu}</span>.</p>
+          <p>Right after the EMP, in a nanosecond, Source Code Extraction commits <span>${runSource}</span> new source lines and gives the next run <span>${runCpuGain}</span> more CPU multiplier.</p>
+          <p class="reboot-small">Source Code Extraction rate <span>${sourceRate}</span> lines / minute - difficulty ${difficulty}</p>
+          <button class="reboot-button" id="reboot-button" type="button" ${state.sourceCode >= 1 ? "" : "disabled"}>EMP</button>
         </section>
       `;
     }
@@ -138,7 +138,9 @@
           <div class="programs-status">
             <span>running programs: ${running} / ${slots}</span>
           </div>
-          <div class="programs-bar" aria-hidden="true"></div>
+          <div class="programs-bar" role="progressbar" aria-label="Running programs" aria-valuemin="0" aria-valuemax="${slots}" aria-valuenow="${running}">
+            <div class="programs-bar-fill" style="width: ${Math.min(100, (running / slots) * 100)}%"></div>
+          </div>
           <div class="program-list">
             ${unlockedPrograms.length ? unlockedPrograms.map((program) => renderProgramCard(program, activeProgram, slots)).join("") : `<article class="program-card locked"><strong>no programs</strong><small>Research a program to load it here.</small></article>`}
           </div>
@@ -146,15 +148,52 @@
       `;
     }
 
+    function renderOperatorPage() {
+      const cost = D("1e10");
+      const ready = D(state.lifetime.hashes).gte(cost);
+      const selected = state.operator?.choice;
+      const coreValue = formatNumber(economy.getEffectiveCores(), WHOLE_EXPONENTIAL);
+      return `
+        <section class="operator-page">
+          <div class="operator-status">
+            <strong>operator</strong>
+            <small>${selected ? `${operatorName(selected)} operator line held until EMP` : `${formatNumber(state.lifetime.hashes, WHOLE_EXPONENTIAL)} / ${formatNumber(cost, WHOLE_EXPONENTIAL)} lifetime hashes to contact the Operator`}</small>
+          </div>
+          <div class="operator-choice-grid">
+            ${renderOperatorCard("social", "operator line", "The Operator stays on comms and loads support processes into the Matrix. Each core brings more bots online.", `(+${coreValue})`, ready, selected)}
+            ${renderOperatorCard("solitary", "redline jack", "The Operator locks you into a clean jack-in route. Each core sharpens direct taps into stronger executions.", `(x${coreValue})`, ready, selected)}
+          </div>
+        </section>
+      `;
+    }
+
+    function operatorName(id) {
+      const names = {
+        social: "operator line",
+        solitary: "redline jack"
+      };
+      return names[id] || id;
+    }
+
+    function renderOperatorCard(id, name, description, effect, ready, selected) {
+      const isSelected = selected === id;
+      const locked = Boolean(selected) && !isSelected;
+      const disabled = !ready || Boolean(selected);
+      return `
+        <button class="program-card operator-card ${isSelected ? "program-running" : ""} ${locked || !ready ? "program-blocked" : ""}" type="button" data-operator-choice="${id}" ${disabled ? "disabled" : ""}>
+          <strong>${name}</strong>
+          <small>${description} <span class="operator-effect">${effect}</span></small>
+        </button>
+      `;
+    }
+
     function renderProgramCard(program, activeProgram, slots) {
       const isActive = activeProgram?.id === program.id;
       const blocked = activeProgram && !isActive && slots <= 1;
-      const meta = isActive ? "running" : blocked ? "stop running program first" : "idle";
       return `
         <button class="program-card ${isActive ? "program-running" : ""} ${blocked ? "program-blocked" : ""}" type="button" data-program-id="${program.id}" ${blocked ? "disabled" : ""}>
           <strong>${program.name}</strong>
           <small>${program.description}</small>
-          <span>${programEffectText(program.effects)} - ${meta}</span>
         </button>
       `;
     }
@@ -172,6 +211,7 @@
 
     function renderStatisticsPage() {
       const stats = economy.getRuntimeBreakdown();
+      const showCalculations = getShowCalculations();
       return `
         <section class="statistics-page">
           <div class="stat-table">
@@ -183,31 +223,34 @@
             ${statRow("cores", formatNumber(state.lifetime.coresPeak, WHOLE_EXPONENTIAL), formatNumber(state.total.coresPeak, WHOLE_EXPONENTIAL))}
             ${statRow("RAM", formatRamAmount(state.lifetime.ramPeak), formatRamAmount(state.total.ramPeak))}
             ${statRow("threads", formatNumber(getRamThreadCount(state.lifetime.ramPeak), WHOLE_EXPONENTIAL), formatNumber(getRamThreadCount(state.total.ramPeak), WHOLE_EXPONENTIAL))}
-            ${statRow("cpu", `${formatNumber(stats.cpuMultiplier, WHOLE_EXPONENTIAL)}x`, `${formatNumber(stats.executionMultiplier, WHOLE_EXPONENTIAL)}x`)}
-            ${statRow("cores", formatNumber(stats.effectiveCores, WHOLE_EXPONENTIAL), `${formatMultiplier(stats.coreMultiplier)}x`)}
-            ${statRow("legacies", "", formatNumber(Object.keys(state.legacies).length, WHOLE_EXPONENTIAL))}
-            ${statRow("reboots", "", formatNumber(state.reboots, WHOLE_EXPONENTIAL))}
+            ${statRow("bots", formatNumber(state.lifetime.botsPeak, WHOLE_EXPONENTIAL), formatNumber(state.total.botsPeak, WHOLE_EXPONENTIAL))}
+            ${statRow("cpus", formatNumber(stats.cpuMultiplier, WHOLE_EXPONENTIAL), formatNumber(stats.cpuMultiplier, WHOLE_EXPONENTIAL))}
+            ${statRow("backdoors", "", formatNumber(Object.keys(state.backdoors).length, WHOLE_EXPONENTIAL))}
+            ${statRow("EMPs", "", formatNumber(state.reboots, WHOLE_EXPONENTIAL))}
           </div>
-          <div class="stat-calculations">
-            ${calcRow("tap", `${formatNumber(stats.tapBase, WHOLE_EXPONENTIAL)} x ${formatMultiplier(stats.cpuMultiplier)}(cpu) x ${formatNumber(stats.effectiveCores, WHOLE_EXPONENTIAL)}(core) (${formatCoreMultiplierFormula(stats.coreMultiplier)}) x ${formatMultiplier(stats.tapResearch)}(tap research/programs) = ${formatNumber(stats.executionsPerTap, WHOLE_EXPONENTIAL)} executions / tap`, `+${formatNumber(stats.executionsPerTap, WHOLE_EXPONENTIAL)} / tap`)}
-            ${calcRow("threads", `${formatRamAmount(state.ramLevel)} holds ${formatThreadCount(stats.ramBase)} x ${formatMultiplier(stats.cpuMultiplier)}(cpu) x ${formatNumber(stats.effectiveCores, WHOLE_EXPONENTIAL)}(core) (${formatCoreMultiplierFormula(stats.coreMultiplier)}) x ${formatMultiplier(stats.ramResearch)}(RAM research/programs) = ${formatNumber(stats.ramRate, WHOLE_EXPONENTIAL)} executions / second`, `+${formatNumber(stats.ramGain8, WHOLE_EXPONENTIAL)} / 8s`)}
-            ${calcRow("cores", `target ${formatNumber(stats.coreTarget, WHOLE_EXPONENTIAL)} from executions, tap level, RAM level, core research ${formatNumber(stats.coreResearch, WHOLE_EXPONENTIAL)}`, `+${formatNumber(stats.coreGain8, WHOLE_EXPONENTIAL)} / 8s`)}
-            ${calcRow("source", `productive mass from executions, cores, RAM / difficulty ${formatNumber(stats.sourceDifficulty, WHOLE_EXPONENTIAL)} x source research ${formatNumber(stats.sourceResearch, WHOLE_EXPONENTIAL)}`, `+${formatNumber(stats.sourceGain8, WHOLE_EXPONENTIAL)} / 8s`)}
+          <button class="stat-calculations-toggle" id="stat-calculations-toggle" type="button" aria-expanded="${showCalculations}">
+            calculations
+          </button>
+          <div class="stat-calculations ${showCalculations ? "" : "hidden"}">
+            ${calcRow("tap", `${formatNumber(stats.tapBase, WHOLE_EXPONENTIAL)} x ${formatMultiplier(stats.cpuMultiplier)}(cpu) x ${formatNumber(stats.effectiveCores, WHOLE_EXPONENTIAL)}(core) (${formatCoreMultiplierFormula(stats.coreMultiplier)}) x ${formatMultiplier(stats.botEfficiency)}(bot efficiency) x ${formatMultiplier(stats.tapResearch)}(tap research/programs) x ${formatMultiplier(stats.operatorTapMultiplier)}(operator) = ${formatNumber(stats.executionsPerTap, WHOLE_EXPONENTIAL)} executions / tap`, `+${formatNumber(stats.executionsPerTap, WHOLE_EXPONENTIAL)} / tap`)}
+            ${calcRow("threads", `${formatRamAmount(state.ramLevel)} holds ${formatThreadCount(stats.ramBase)} x ${formatMultiplier(stats.cpuMultiplier)}(cpu) x ${formatNumber(stats.effectiveCores, WHOLE_EXPONENTIAL)}(core) (${formatCoreMultiplierFormula(stats.coreMultiplier)}) x ${formatMultiplier(stats.botEfficiency)}(bot efficiency) x ${formatMultiplier(stats.ramResearch)}(RAM research/programs) = ${formatNumber(stats.ramRate, WHOLE_EXPONENTIAL)} executions / second`, `+${formatNumber(stats.ramGain8, WHOLE_EXPONENTIAL)} / 8s`)}
+            ${calcRow("cores", `target ${formatNumber(stats.coreTarget, WHOLE_EXPONENTIAL)} from executions, tap level, RAM level, core research ${formatNumber(stats.coreResearch, WHOLE_EXPONENTIAL)}, bots ${formatNumber(stats.effectiveBots, WHOLE_EXPONENTIAL)} (${formatMultiplier(stats.botEfficiency)}x)`, `+${formatNumber(stats.coreGain8, WHOLE_EXPONENTIAL)} / 8s`)}
+            ${calcRow("source", `productive mass from executions, cores, RAM / difficulty ${formatNumber(stats.sourceDifficulty, WHOLE_EXPONENTIAL)} x source research ${formatNumber(stats.sourceResearch, WHOLE_EXPONENTIAL)} x bot efficiency ${formatMultiplier(stats.botEfficiency)}`, `+${formatNumber(stats.sourceGain8, WHOLE_EXPONENTIAL)} / 8s`)}
           </div>
         </section>
       `;
     }
 
-    function renderLegaciesPage() {
+    function renderBackdoorsPage() {
       return `
-        <section class="legacy-list">
-          ${legacyData.map((legacy) => {
-            const unlocked = Boolean(state.legacies[legacy.id]);
+        <section class="backdoor-list">
+          ${backdoorData.map((backdoor) => {
+            const unlocked = Boolean(state.backdoors[backdoor.id]);
             return `
-              <article class="legacy-entry ${unlocked ? "legacy-unlocked" : "legacy-locked"}">
-                <strong>${legacy.name}</strong>
-                <p>${legacy.description}</p>
-                <small>${legacyEffectText(legacy)}</small>
+              <article class="backdoor-entry ${unlocked ? "backdoor-unlocked" : "backdoor-locked"}">
+                <strong>${backdoor.name}</strong>
+                <p>${backdoor.description}</p>
+                <small>${backdoorEffectText(backdoor)}</small>
               </article>
             `;
           }).join("")}
@@ -231,13 +274,16 @@
     function renderAboutPage() {
       return `
         <section class="about-page">
-          <p>Matrix RAM is a small vanilla HTML, CSS, and JavaScript incremental game about teaching a dark system to reveal its own source.</p>
+          <p>The Blue Pill is a small vanilla HTML, CSS, and JavaScript incremental game about teaching a dark system to reveal its own source.</p>
+          <p>This is a modern themed remake of <a href="https://dragonmegaliths.com/games/grimoire" target="_blank" rel="noopener noreferrer">Grimoire Incremental</a>.</p>
           <p class="muted">Save data is local to this browser.</p>
           <button class="reboot-button danger" id="reset-save" type="button">reset save</button>
-          <button class="reboot-button" id="start-crash" type="button">start crash game</button>
-          <div class="dev-multiplier-row" aria-label="Development tap multiplier">
-            ${[1, 10, 100, 1000].map(renderDevMultiplier).join("")}
-          </div>
+          ${isDebugMode() ? `
+            <button class="reboot-button" id="start-crash" type="button">start crash game</button>
+            <div class="dev-multiplier-row" aria-label="Development tap multiplier">
+              ${[1, 10, 100, 1000].map(renderDevMultiplier).join("")}
+            </div>
+          ` : ""}
         </section>
       `;
     }
@@ -307,8 +353,8 @@
       return `${shown}${units[unitIndex]}`;
     }
 
-    function legacyEffectText(legacy) {
-      return economy.getLegacyEffects(legacy)
+    function backdoorEffectText(backdoor) {
+      return economy.getBackdoorEffects(backdoor)
         .map(({ key, value, scaling }) => {
           const source = scaling?.stat ? ` (${scalingLabel(scaling.stat)} / ${formatNumber(scaling.divisor)})` : "";
           return `${effectLabel(key)} +${Math.round(value * 100)}%${source}`;
@@ -320,18 +366,11 @@
       return Object.entries(effects)
         .map(([key, value]) => {
           if (key === "maxBuy") return "max buy unlocked";
-          if (key === "unlockProgram") return `program unlocked: ${programName(value)}`;
+          if (key === "unlockProgram") return programName(value);
           if (key === "coreFlat") return `cores +${formatNumber(value, WHOLE_EXPONENTIAL)}`;
+          if (key === "botFlat") return `bots +${formatNumber(value, WHOLE_EXPONENTIAL)}`;
           return `${effectLabel(key)} ${value >= 0 ? "+" : ""}${Math.round(value * 100)}%`;
         })
-        .join(", ");
-    }
-
-    function programEffectText(effects = {}) {
-      return Object.entries(effects)
-        .map(([key, value]) => key === "coreFlat"
-          ? `+${formatNumber(value, WHOLE_EXPONENTIAL)} cores`
-          : `${effectLabel(key)} +${Math.round(value * 100)}%`)
         .join(", ");
     }
 
@@ -344,7 +383,8 @@
         tapCostMultiplier: "tap upgrade cost",
         ramMultiplier: "RAM",
         ramCostMultiplier: "RAM upgrade cost",
-        coreFlat: "cores"
+        coreFlat: "cores",
+        botFlat: "bots"
       };
       return labels[key] || key.replace("Multiplier", "");
     }
@@ -363,7 +403,8 @@
         time: "lifetime time",
         executions: "lifetime executions",
         sourceCode: "lifetime source",
-        cores: "lifetime cores"
+        cores: "lifetime cores",
+        bots: "lifetime bots"
       };
       return labels[stat] || stat;
     }
@@ -372,10 +413,11 @@
       matrix: renderMatrixPage,
       research: renderResearchPage,
       programs: renderProgramsPage,
+      operator: renderOperatorPage,
       executions: renderExecutionsPage,
       story: renderStoryPage,
       statistics: renderStatisticsPage,
-      legacies: renderLegaciesPage,
+      backdoors: renderBackdoorsPage,
       help: renderHelpPage,
       about: renderAboutPage
     };

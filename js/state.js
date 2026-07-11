@@ -11,6 +11,7 @@
         sourceCode: 0,
         coresPeak: 0,
         ramPeak: 0,
+        botsPeak: 0,
         researchBought: 0
       };
     }
@@ -53,9 +54,17 @@
         cpuMultiplier: config.startingState.cpuMultiplier,
         reboots: config.startingState.reboots,
         previousRunSourceCode: config.startingState.previousRunSourceCode,
+        bots: {
+          owned: 0,
+          operator: 0
+        },
         research: {},
         unlockedStories: {},
-        legacies: {},
+        backdoors: {},
+        operator: {
+          unlocked: false,
+          choice: null
+        },
         programs: freshPrograms(),
         downloads: freshDownloads(),
         crashes: freshCrashes(),
@@ -67,7 +76,9 @@
     function normalizeState(next) {
       next.research ||= {};
       next.unlockedStories ||= {};
-      next.legacies ||= {};
+      next.backdoors ||= {};
+      next.bots = { owned: 0, operator: 0, ...(next.bots || {}) };
+      next.operator = { unlocked: false, choice: null, ...(next.operator || {}) };
       next.programs = { ...freshPrograms(), ...(next.programs || {}) };
       next.programs.unlocked ||= {};
       next.downloads = { ...freshDownloads(), ...(next.downloads || {}) };
@@ -90,6 +101,10 @@
       next.cpuMultiplier = Math.max(1, finiteNumber(next.cpuMultiplier, config.startingState.cpuMultiplier));
       next.reboots = finiteNumber(next.reboots, config.startingState.reboots);
       next.previousRunSourceCode = Math.max(1, finiteNumber(next.previousRunSourceCode, 1));
+      next.bots.owned = Math.max(0, finiteNumber(next.bots.owned));
+      next.bots.operator = Math.max(0, finiteNumber(next.bots.operator));
+      next.operator.unlocked = Boolean(next.operator.unlocked);
+      next.operator.choice = ["social", "solitary"].includes(next.operator.choice) ? next.operator.choice : null;
       next.programs.slots = Math.max(1, finiteNumber(next.programs.slots, config.programs?.slots || 1));
       next.programs.active = next.programs.active && next.programs.unlocked[next.programs.active] ? next.programs.active : null;
       next.downloads.firstRam.bytes = finiteNumber(next.downloads.firstRam.bytes);
@@ -102,12 +117,14 @@
       next.lifetime.sourceCode = finiteNumber(next.lifetime.sourceCode);
       next.lifetime.coresPeak = finiteNumber(next.lifetime.coresPeak);
       next.lifetime.ramPeak = finiteNumber(next.lifetime.ramPeak);
+      next.lifetime.botsPeak = finiteNumber(next.lifetime.botsPeak);
       next.lifetime.researchBought = finiteNumber(next.lifetime.researchBought);
       next.total.time = finiteNumber(next.total.time);
       next.total.taps = finiteNumber(next.total.taps);
       next.total.sourceCode = finiteNumber(next.total.sourceCode);
       next.total.coresPeak = finiteNumber(next.total.coresPeak);
       next.total.ramPeak = finiteNumber(next.total.ramPeak);
+      next.total.botsPeak = finiteNumber(next.total.botsPeak);
       next.total.researchBought = finiteNumber(next.total.researchBought);
       return next;
     }

@@ -24,6 +24,14 @@
     "text": "Threads are background processes. Each one is a small repeating task that spends processor time for you, turning available RAM into passive execution work. RAM size is shown as capacity, but the thread count is the part that explains the execution output."
   },
   {
+    "title": "bots",
+    "text": "Bots are helper processes created by programs. For now they are temporary: when the bot program runs, bots appear and improve the efficiency of taps, RAM threads, core growth, and source-code writing. When that program stops, those temporary bots vanish. Later systems may let bots persist and grow outside a running program."
+  },
+  {
+    "title": "operator",
+    "text": "The Operator is the voice outside the Matrix, exposed after the current run proves enough work through lifetime hashes. Operator line keeps support on comms and turns cores into bot traffic over time. Redline jack gives you a cleaner direct route, letting cores multiply tap executions. Only one Operator route can be held, and it lasts until EMP."
+  },
+  {
     "title": "cores",
     "text": "Cores are dense knots of progress. They form slowly, almost reluctantly, from executions, background threads, and repeated upgrades. A core does not merely add more executions; it teaches all future execution gain to arrive heavier."
   },
@@ -33,19 +41,19 @@
   },
   {
     "title": "source code",
-    "text": "Source code lines are fragments of the world behind the world. They appear slowly at first. After every reboot, writing them becomes harder, as though the machine recognizes your handwriting and starts hiding the margins."
+    "text": "Source code lines are persistent run output. They accumulate during a run, then a nanosecond after EMP, Source Code Extraction commits them and increases the CPU multiplier for the next run. Longer repeated runs become harder through EMP difficulty scaling."
   },
   {
     "title": "cpu multiplier",
-    "text": "The CPU multiplier is the pressure of all written source code against the next run. It begins at one. It rises from source code, research, and legacy, quietly making each new beginning less innocent than the last."
+    "text": "The CPU multiplier is the pressure of extracted source code against the next run. It begins at one. It rises from source code, research, and backdoors, quietly making each new beginning less innocent than the last."
   },
   {
-    "title": "reboot",
-    "text": "A reboot is not death. It is a bargain with memory. You surrender the current run's executions, taps, RAM threads, and cores, but the source code remains, and the next version wakes with a deeper processor under it."
+    "title": "EMP",
+    "text": "EMP (Electromagnetic Pulse) resets the current run's hashes, executions, taps, RAM threads, programs, and cores. Right after the EMP, in a nanosecond, Source Code Extraction commits source code to ROM and gives the next run its CPU multiplier."
   },
   {
-    "title": "legacies",
-    "text": "Legacies are achievements the machine cannot forget. Once unlocked, they survive every reboot and return as multipliers. They are not trophies; they are scars that learned mathematics."
+    "title": "backdoors",
+    "text": "Backdoors are persistent access records created by major run milestones. Once opened, they survive every EMP and return as multipliers for future runs."
   },
   {
     "title": "statistics",
