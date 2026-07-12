@@ -325,7 +325,7 @@
   }
 
   function getCrashReward() {
-    return finiteNumber(Math.floor(state.sourceCode * 0.05));
+    return Math.max(1, finiteNumber(Math.floor(state.sourceCode * 0.05)));
   }
 
   function getNextCrashObstacleX(crash = activeCrash) {
@@ -551,12 +551,12 @@
 
   function createStoryOverlay() {
     storyOverlay = document.createElement("section");
-    storyOverlay.className = "story-overlay hidden";
+    storyOverlay.className = "story-overlay p-safe-overlay hidden";
     storyOverlay.setAttribute("aria-modal", "true");
     storyOverlay.setAttribute("role", "dialog");
     storyOverlay.innerHTML = `
       <div class="story-overlay-content">
-        <p id="story-overlay-text"></p>
+        <p class="m-0" id="story-overlay-text"></p>
         <button class="story-continue" id="story-continue" type="button">continue</button>
       </div>
     `;
@@ -587,7 +587,7 @@
 
   function createCrashScreen() {
     crashScreen = document.createElement("section");
-    crashScreen.className = "crash-screen hidden";
+    crashScreen.className = "crash-screen p-1 hidden";
     crashScreen.setAttribute("aria-label", "Crash recovery runner");
     crashScreen.innerHTML = `
       <div class="crash-game">
@@ -642,7 +642,7 @@
   }
 
   function render(updatePage = true) {
-    if (activePage === "executions" && !isExecutionsPageUnlocked()) activePage = config.ui.defaultPage;
+    if (activePage === "EMP" && !isEMPPageUnlocked()) activePage = config.ui.defaultPage;
     if (activePage === "programs" && !isProgramsPageUnlocked()) activePage = config.ui.defaultPage;
     if (activePage === "roguePrograms" && !isRogueProgramsPageUnlocked()) activePage = config.ui.defaultPage;
     if (activePage === "operator" && !isOperatorPageUnlocked()) activePage = config.ui.defaultPage;
@@ -770,8 +770,8 @@
 
   function updateMenuAvailability() {
     els.menuButtons.forEach((button) => {
-      if (button.dataset.page === "executions") {
-        button.hidden = !isExecutionsPageUnlocked();
+      if (button.dataset.page === "EMP") {
+        button.hidden = !isEMPPageUnlocked();
       }
       if (button.dataset.page === "programs") {
         button.hidden = !isProgramsPageUnlocked();
@@ -785,7 +785,7 @@
     });
   }
 
-  function isExecutionsPageUnlocked() {
+  function isEMPPageUnlocked() {
     return state.total.taps >= 256;
   }
 
@@ -832,6 +832,51 @@
       if (node) node.textContent = value;
     });
     updateDownloadBits();
+    updateActionAvailability();
+  }
+
+  function updateActionAvailability() {
+    document.querySelectorAll("[data-research-id]").forEach((button) => {
+      const item = researchData.find((entry) => entry.id === button.dataset.researchId);
+      const canAfford = item && !economy.isResearchBought(item.id) && D(state.hashes).gte(economy.getResearchCost(item));
+      setButtonAvailable(button, canAfford);
+    });
+
+    document.querySelectorAll("[data-rogue-program-id]").forEach((button) => {
+      const program = (config.roguePrograms?.items || []).find((entry) => entry.id === button.dataset.rogueProgramId);
+      const canAfford = program && state.roguePrograms?.unlocked && D(state.hashes).gte(economy.getRogueProgramCost(program));
+      setButtonAvailable(button, canAfford);
+    });
+
+    const slotButton = document.getElementById("program-slot-upgrade");
+    if (slotButton) {
+      const cost = economy.getProgramSlotUpgradeCost();
+      setButtonAvailable(slotButton, Boolean(cost) && D(state.hashes).gte(cost));
+    }
+
+    if (!state.operator.choice) {
+      document.querySelectorAll("[data-operator-choice]").forEach((button) => {
+        const canChoose = state.operator.unlocked && D(state.lifetime.hashes).gte(getOperatorCost());
+        setButtonAvailable(button, canChoose, "program-blocked");
+      });
+    }
+
+    if (!state.operator.tier2Choice) {
+      document.querySelectorAll("[data-operator-tier2-choice]").forEach((button) => {
+        const canChoose = state.operator.unlocked && Boolean(state.operator.choice) && D(state.lifetime.hashes).gte(getOperatorTier2Cost());
+        setButtonAvailable(button, canChoose, "program-blocked");
+      });
+    }
+
+    const rebootButton = document.getElementById("reboot-button");
+    if (rebootButton) setButtonAvailable(rebootButton, state.sourceCode >= 1);
+  }
+
+  function setButtonAvailable(button, available, blockedClass = null) {
+    if (!(button instanceof HTMLButtonElement)) return;
+    button.disabled = !available;
+    button.classList.toggle("can-afford", Boolean(available));
+    if (blockedClass) button.classList.toggle(blockedClass, !available);
   }
 
   function updateDownloadBits() {
@@ -947,11 +992,10 @@
     holding = true;
     holdTimer = 0;
     pulse();
-    render();
+    render(false);
   }
 
   function isPulseTarget(event, x, y) {
-    if (activePage !== "matrix") return false;
     const target = event.target;
     if (!(target instanceof Element)) return false;
     if (isBlockedPulseElement(target)) return false;

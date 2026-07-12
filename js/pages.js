@@ -14,7 +14,7 @@
       const maxBuyUnlocked = economy.isResearchBought("max_buy");
       return `
         <div class="matrix-page" id="matrix-page">
-          <section class="download-stage" aria-label="Mini upgrade download">
+          <section class="download-stage p-1" aria-label="Mini upgrade download">
             ${renderFirstRamDownload()}
           </section>
           <section class="upgrade-stack" aria-label="Upgrades">
@@ -59,11 +59,11 @@
       const maxId = `${id}-max`;
       return `
         <div class="upgrade-row ${maxBuyUnlocked ? "has-max" : ""}">
-          <button class="upgrade ${canAfford ? "can-afford" : ""}" id="${id}" type="button" ${canAfford ? "" : "disabled"}>
+          <button class="upgrade p-1 ${canAfford ? "can-afford" : ""}" id="${id}" type="button" ${canAfford ? "" : "disabled"}>
             <span><strong>${title}</strong><small>${effect}</small></span>
             <span class="meta"><small>${level}</small><small>${cost}</small></span>
           </button>
-          ${maxBuyUnlocked ? `<button class="upgrade-max ${canAfford ? "can-afford" : ""}" id="${maxId}" type="button" ${canAfford ? "" : "disabled"}>max</button>` : ""}
+          ${maxBuyUnlocked ? `<button class="upgrade-max p-1 ${canAfford ? "can-afford" : ""}" id="${maxId}" type="button" ${canAfford ? "" : "disabled"}>max</button>` : ""}
         </div>
       `;
     }
@@ -73,15 +73,15 @@
       const purchased = researchData.filter((item) => economy.isResearchBought(item.id));
       return `
         <div class="research-page">
-        <div class="subtabs" role="tablist" aria-label="Research filters">
+        <div class="subtabs mb-2" role="tablist" aria-label="Research filters">
           <button class="subtab active" type="button" data-research-view="available">available</button>
           <button class="subtab" type="button" data-research-view="purchased">purchased</button>
         </div>
-        <section class="card-grid research-panel" data-research-panel="available">
-          ${available.length ? available.map(renderAvailableResearch).join("") : `<article class="card"><span><strong>no available research</strong><small>The machine has no unnamed doors left in this run.</small></span></article>`}
+        <section class="card-grid research-panel pr-half" data-research-panel="available">
+          ${available.length ? available.map(renderAvailableResearch).join("") : `<article class="card p-1"><span><strong>no available research</strong><small>The machine has no unnamed doors left in this run.</small></span></article>`}
         </section>
-        <section class="card-grid research-panel hidden" data-research-panel="purchased">
-          ${purchased.length ? purchased.map(renderPurchasedResearch).join("") : `<article class="card"><span><strong>nothing purchased</strong><small>No research has crossed from rumor into memory.</small></span></article>`}
+        <section class="card-grid research-panel pr-half hidden" data-research-panel="purchased">
+          ${purchased.length ? purchased.map(renderPurchasedResearch).join("") : `<article class="card p-1"><span><strong>nothing purchased</strong><small>No research has crossed from rumor into memory.</small></span></article>`}
         </section>
         </div>
       `;
@@ -91,7 +91,7 @@
       const cost = economy.getResearchCost(item);
       const canAfford = D(state.hashes).gte(cost);
       return `
-        <button class="card actionable ${canAfford ? "can-afford" : ""}" data-research-id="${item.id}" type="button" ${canAfford ? "" : "disabled"}>
+        <button class="card actionable p-1 ${canAfford ? "can-afford" : ""}" data-research-id="${item.id}" type="button" ${canAfford ? "" : "disabled"}>
           <span class="research-copy"><strong>${item.name}</strong><small>${item.description}</small></span>
           <span class="research-card-footer"><small>${effectText(item.effects)}</small><small>${formatNumber(cost, WHOLE_EXPONENTIAL)}</small></span>
         </button>
@@ -101,14 +101,14 @@
     function renderPurchasedResearch(item) {
       const cost = economy.getResearchCost(item);
       return `
-        <article class="card can-afford">
+        <article class="card can-afford p-1">
           <span class="research-copy"><strong>${item.name}</strong><small>${item.description}</small></span>
           <span class="research-card-footer"><small>${effectText(item.effects)}</small><small>${formatNumber(cost, WHOLE_EXPONENTIAL)}</small></span>
         </article>
       `;
     }
 
-    function renderExecutionsPage() {
+    function renderEMPPage() {
       const difficulty = getDifficultyLabel();
       const currentSource = formatNumber(state.totalSourceCode);
       const currentCpuValue = economy.getCpuMultiplierForSource(state.totalSourceCode);
@@ -118,11 +118,11 @@
       const runCpuGain = formatNumber(Math.round(Math.max(0, nextCpuValue - currentCpuValue)));
       const sourceRate = formatNumber(economy.getSourceCodeRate() * 60);
       return `
-        <section class="reboot-page">
-          <p>EMP (Electromagnetic Pulse) resets the current run.</p>
-          <p>ROM contains <span>${currentSource}</span> source lines, giving this run a CPU multiplier of <span>${currentCpu}</span>.</p>
-          <p>Right after the EMP, in a nanosecond, Source Code Extraction commits <span>${runSource}</span> new source lines and gives the next run <span>${runCpuGain}</span> more CPU multiplier.</p>
-          <p class="reboot-small">Source Code Extraction rate <span>${sourceRate}</span> lines / minute - difficulty ${difficulty}</p>
+        <section class="reboot-page p-1">
+          <p class="m-0">EMP (Electromagnetic Pulse) resets the current run.</p>
+          <p class="m-0">ROM contains <span>${currentSource}</span> source lines, giving this run a CPU multiplier of <span>${currentCpu}</span>.</p>
+          <p class="m-0">Right after the EMP, in a nanosecond, Source Code Extraction commits <span>${runSource}</span> new source lines and gives the next run <span>${runCpuGain}</span> more CPU multiplier.</p>
+          <p class="reboot-small m-0">Source Code Extraction rate <span>${sourceRate}</span> lines / minute - difficulty ${difficulty}</p>
           <button class="reboot-button" id="reboot-button" type="button" ${state.sourceCode >= 1 ? "" : "disabled"}>EMP</button>
         </section>
       `;
@@ -134,15 +134,15 @@
       const running = activePrograms.length;
       const slots = Math.max(1, Number(state.programs?.slots || config.programs?.slots || 1));
       return `
-        <section class="programs-page">
+        <section class="programs-page p-half">
           <div class="programs-status">
             <span>running programs: ${running} / ${slots}</span>
           </div>
           <div class="programs-bar" role="progressbar" aria-label="Running programs" aria-valuemin="0" aria-valuemax="${slots}" aria-valuenow="${running}">
             <div class="programs-bar-fill" style="width: ${Math.min(100, (running / slots) * 100)}%"></div>
           </div>
-          <div class="program-list">
-            ${unlockedPrograms.length ? unlockedPrograms.map((program) => renderProgramCard(program, activePrograms, slots)).join("") : `<article class="program-card locked"><span class="research-copy"><strong>no programs</strong><small>Research a program to load it here.</small></span></article>`}
+          <div class="program-list pr-half">
+            ${unlockedPrograms.length ? unlockedPrograms.map((program) => renderProgramCard(program, activePrograms, slots)).join("") : `<article class="program-card p-1 locked"><span class="research-copy"><strong>no programs</strong><small>Research a program to load it here.</small></span></article>`}
           </div>
         </section>
       `;
@@ -159,7 +159,7 @@
       const botValue = formatNumber(economy.getEffectiveBots(), WHOLE_EXPONENTIAL);
       const threadValue = formatNumber(economy.getEffectiveThreads(), WHOLE_EXPONENTIAL);
       return `
-        <section class="operator-page">
+        <section class="operator-page p-1">
           <div class="operator-choice-grid">
             ${renderOperatorCard("social", "operator line", "The Operator stays on comms and loads support processes into the Matrix. Each core brings more bots online.", `(+${coreValue})`, ready, selected)}
             ${renderOperatorCard("solitary", "redline jack", "The Operator locks you into a clean jack-in route. Each core sharpens direct taps into stronger executions.", `(x${coreValue})`, ready, selected)}
@@ -173,7 +173,7 @@
 
     function renderOperatorHint(selected, tier2Selected, tier2Cost) {
       if (!selected || tier2Selected) return "";
-      return `<p class="operator-hint">${formatNumber(tier2Cost, WHOLE_EXPONENTIAL)} lifetime hashes</p>`;
+      return `<p class="operator-hint m-0">${formatNumber(tier2Cost, WHOLE_EXPONENTIAL)} lifetime hashes</p>`;
     }
 
     function operatorName(id) {
@@ -197,7 +197,7 @@
       const locked = Boolean(selected) && !isSelected;
       const disabled = !ready || Boolean(selected);
       return `
-        <button class="program-card operator-card ${isSelected ? "program-running" : ""} ${locked || !ready ? "program-blocked" : ""}" type="button" data-operator-choice="${id}" ${disabled ? "disabled" : ""}>
+        <button class="program-card operator-card p-1 ${isSelected ? "program-running" : ""} ${locked || !ready ? "program-blocked" : ""}" type="button" data-operator-choice="${id}" ${disabled ? "disabled" : ""}>
           <strong>${name}</strong>
           <small>${description} <span class="operator-effect">${effect}</span></small>
         </button>
@@ -209,7 +209,7 @@
       const locked = Boolean(selected) && !isSelected;
       const disabled = !ready || Boolean(selected);
       return `
-        <button class="program-card operator-card ${isSelected ? "program-running" : ""} ${locked || !ready ? "program-blocked" : ""}" type="button" data-operator-tier2-choice="${id}" ${disabled ? "disabled" : ""}>
+        <button class="program-card operator-card p-1 ${isSelected ? "program-running" : ""} ${locked || !ready ? "program-blocked" : ""}" type="button" data-operator-tier2-choice="${id}" ${disabled ? "disabled" : ""}>
           <strong>${name}</strong>
           <small>${description} <span class="operator-effect">${effect}</span></small>
           <span>cost ${formatNumber(cost, WHOLE_EXPONENTIAL)} lifetime hashes</span>
@@ -221,7 +221,7 @@
       const isActive = activePrograms.some((activeProgram) => activeProgram.id === program.id);
       const blocked = activePrograms.length >= slots && !isActive;
       return `
-        <button class="program-card ${isActive ? "program-running" : ""} ${blocked ? "program-blocked" : ""}" type="button" data-program-id="${program.id}" ${blocked ? "disabled" : ""}>
+        <button class="program-card p-1 ${isActive ? "program-running" : ""} ${blocked ? "program-blocked" : ""}" type="button" data-program-id="${program.id}" ${blocked ? "disabled" : ""}>
           <span class="research-copy"><strong>${program.name}</strong><small>${program.description}</small></span>
         </button>
       `;
@@ -231,8 +231,8 @@
       const programs = config.roguePrograms?.items || [];
       const slots = Math.max(1, Number(state.programs?.slots || config.programs?.slots || 1));
       return `
-        <section class="programs-page rogue-programs-page">
-          <div class="program-list rogue-program-grid">
+        <section class="programs-page rogue-programs-page p-half pt-half">
+          <div class="program-list rogue-program-grid pr-half">
             ${programs.map(renderRogueProgramCard).join("")}
             ${renderProgramSlotUpgradeCard(slots)}
           </div>
@@ -246,7 +246,7 @@
       const perLevel = Number(program.effects?.hashMultiplier || 0);
       const canAfford = D(state.hashes).gte(cost);
       return `
-        <button class="program-card ${level > 0 ? "program-running" : ""} ${canAfford ? "can-afford" : ""}" type="button" data-rogue-program-id="${program.id}" ${canAfford ? "" : "disabled"}>
+        <button class="program-card p-1 ${level > 0 ? "program-running" : ""} ${canAfford ? "can-afford" : ""}" type="button" data-rogue-program-id="${program.id}" ${canAfford ? "" : "disabled"}>
           <span class="research-copy"><strong>${program.name}</strong><small>${program.description}</small></span>
           <span class="research-card-footer"><small>level ${level} / x${formatMultiplier(Math.pow(1 + perLevel, level || 1))} ${level > 0 ? "total" : "next"}</small><small>${formatNumber(cost, WHOLE_EXPONENTIAL)}</small></span>
         </button>
@@ -258,14 +258,14 @@
       const canAfford = cost && D(state.hashes).gte(cost);
       if (!cost) {
         return `
-          <article class="program-card program-running">
+          <article class="program-card program-running p-1">
             <span class="research-copy"><strong>parallel loader</strong><small>Normal program stack is fully widened.</small></span>
             <span class="research-card-footer"><small>${slots} / 5 running programs</small><small>max</small></span>
           </article>
         `;
       }
       return `
-        <button class="program-card ${canAfford ? "can-afford" : ""}" id="program-slot-upgrade" type="button" ${canAfford ? "" : "disabled"}>
+        <button class="program-card p-1 ${canAfford ? "can-afford" : ""}" id="program-slot-upgrade" type="button" ${canAfford ? "" : "disabled"}>
           <span class="research-copy"><strong>parallel loader</strong><small>Increase the running program limit on the Programs page. Rogue programs keep running beside it.</small></span>
           <span class="research-card-footer"><small>${slots} / 5 running programs</small><small>${formatNumber(cost, WHOLE_EXPONENTIAL)}</small></span>
         </button>
@@ -277,7 +277,7 @@
       return `
         <section class="story-list">
           ${(unlocked.length ? unlocked : [{ text: "The first message has not crossed the glass." }]).map((entry) => `
-            <article class="story-entry"><p>${entry.text}</p></article>
+            <article class="story-entry p-4"><p class="m-0">${entry.text}</p></article>
           `).join("")}
         </section>
       `;
@@ -287,9 +287,9 @@
       const stats = economy.getRuntimeBreakdown();
       const showCalculations = getShowCalculations();
       return `
-        <section class="statistics-page">
+        <section class="statistics-page p-1">
           <div class="stat-table">
-            <div class="stat-header"><span></span><span>lifetime</span><span>total</span></div>
+            <div class="stat-header p-1"><span></span><span>lifetime</span><span>total</span></div>
             ${statRow("time", formatTime(state.lifetime.time), formatTime(state.total.time))}
             ${statRow("taps", formatNumber(state.lifetime.taps, WHOLE_EXPONENTIAL), formatNumber(state.total.taps, WHOLE_EXPONENTIAL))}
             ${statRow("hashes", formatNumber(state.lifetime.hashes, WHOLE_EXPONENTIAL), formatNumber(state.total.hashes, WHOLE_EXPONENTIAL))}
@@ -302,10 +302,10 @@
             ${statRow("backdoors", "", formatNumber(Object.keys(state.backdoors).length, WHOLE_EXPONENTIAL))}
             ${statRow("EMPs", "", formatNumber(state.reboots, WHOLE_EXPONENTIAL))}
           </div>
-          <button class="stat-calculations-toggle" id="stat-calculations-toggle" type="button" aria-expanded="${showCalculations}">
+          <button class="stat-calculations-toggle mt-5 mx-auto p-1" id="stat-calculations-toggle" type="button" aria-expanded="${showCalculations}">
             calculations
           </button>
-          <div class="stat-calculations ${showCalculations ? "" : "hidden"}">
+          <div class="stat-calculations mt-2 pt-3 ${showCalculations ? "" : "hidden"}">
             ${calcRow("tap", `${formatNumber(stats.tapBase, WHOLE_EXPONENTIAL)} x ${formatMultiplier(stats.cpuMultiplier)}(cpu) x ${formatNumber(stats.effectiveCores, WHOLE_EXPONENTIAL)}(core) (${formatCoreMultiplierFormula(stats.coreMultiplier)}) x ${formatMultiplier(stats.botEfficiency)}(bot efficiency) x ${formatMultiplier(stats.operatorHashMultiplier)}(operator hash) x ${formatMultiplier(stats.rogueMultiplier)}(rogue) x ${formatMultiplier(stats.tapResearch)}(tap research/programs) x ${formatMultiplier(stats.operatorTapMultiplier)}(operator tap) = ${formatNumber(stats.executionsPerTap, WHOLE_EXPONENTIAL)} executions / tap`, `+${formatNumber(stats.executionsPerTap, WHOLE_EXPONENTIAL)} / tap`)}
             ${calcRow("threads", `${formatRamAmount(state.ramLevel)} holds ${formatThreadCount(stats.ramBase)} x ${formatMultiplier(stats.cpuMultiplier)}(cpu) x ${formatNumber(stats.effectiveCores, WHOLE_EXPONENTIAL)}(core) (${formatCoreMultiplierFormula(stats.coreMultiplier)}) x ${formatMultiplier(stats.botEfficiency)}(bot efficiency) x ${formatMultiplier(stats.operatorHashMultiplier)}(operator hash) x ${formatMultiplier(stats.rogueMultiplier)}(rogue) x ${formatMultiplier(stats.ramResearch)}(RAM research/programs) = ${formatNumber(stats.ramRate, WHOLE_EXPONENTIAL)} executions / second`, `+${formatNumber(stats.ramGain8, WHOLE_EXPONENTIAL)} / 8s`)}
             ${calcRow("cores", `target ${formatNumber(stats.coreTarget, WHOLE_EXPONENTIAL)} from executions, tap level, RAM level, core research ${formatNumber(stats.coreResearch, WHOLE_EXPONENTIAL)}, bots ${formatNumber(stats.effectiveBots, WHOLE_EXPONENTIAL)} (${formatMultiplier(stats.botEfficiency)}x)`, `+${formatNumber(stats.coreGain8, WHOLE_EXPONENTIAL)} / 8s`)}
@@ -321,9 +321,9 @@
           ${backdoorData.map((backdoor) => {
             const unlocked = Boolean(state.backdoors[backdoor.id]);
             return `
-              <article class="backdoor-entry ${unlocked ? "backdoor-unlocked" : "backdoor-locked"}">
+              <article class="backdoor-entry p-1 ${unlocked ? "backdoor-unlocked" : "backdoor-locked"}">
                 <strong>${backdoor.name}</strong>
-                <p>${backdoor.description}</p>
+                <p class="m-0">${backdoor.description}</p>
                 <small>${backdoorEffectText(backdoor)}</small>
               </article>
             `;
@@ -337,8 +337,8 @@
         <section class="accordion">
           ${helpData.map((entry, index) => `
             <details class="accordion-item" ${index === 0 ? "open" : ""}>
-              <summary>${entry.title}</summary>
-              <p>${entry.text}</p>
+              <summary class="p-1">${entry.title}</summary>
+              <p class="m-0 p-1">${entry.text}</p>
             </details>
           `).join("")}
         </section>
@@ -347,10 +347,10 @@
 
     function renderAboutPage() {
       return `
-        <section class="about-page">
-          <p>The Blue Pill is a small vanilla HTML, CSS, and JavaScript incremental game about teaching a dark system to reveal its own source.</p>
-          <p>This is a modern themed remake of <a href="https://dragonmegaliths.com/games/grimoire" target="_blank" rel="noopener noreferrer">Grimoire Incremental</a>.</p>
-          <p class="muted">Save data is local to this browser.</p>
+        <section class="about-page p-1">
+          <p class="m-0">The Blue Pill is a small vanilla HTML, CSS, and JavaScript incremental game about teaching a dark system to reveal its own source.</p>
+          <p class="m-0">This is a modern themed remake of <a href="https://dragonmegaliths.com/games/grimoire" target="_blank" rel="noopener noreferrer">Grimoire Incremental</a>.</p>
+          <p class="muted m-0">Save data is local to this browser.</p>
           <button class="reboot-button danger" id="reset-save" type="button">reset save</button>
           ${isDebugMode() ? `
             <button class="reboot-button" id="start-crash" type="button">start crash game</button>
@@ -494,7 +494,7 @@
       programs: renderProgramsPage,
       roguePrograms: renderRogueProgramsPage,
       operator: renderOperatorPage,
-      executions: renderExecutionsPage,
+      EMP: renderEMPPage,
       story: renderStoryPage,
       statistics: renderStatisticsPage,
       backdoors: renderBackdoorsPage,

@@ -7,16 +7,16 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="styles.css">
   </head>
-  <body>
+  <body class="m-0">
     <canvas id="matrix" aria-hidden="true"></canvas>
 
-    <main class="game-shell" id="game">
+    <main class="game-shell mx-auto p-safe-shell" id="game">
       <header class="hud">
         <section class="metric metric-primary" aria-label="Hashes">
           <strong id="hashes">0</strong>
           <span>hashes</span>
         </section>
-        <section class="metric metric-core" aria-label="Cores">
+        <section class="metric metric-core mt-8" aria-label="Cores">
           <strong id="cores">0</strong>
           <span id="cores-label">cores</span>
         </section>
@@ -26,7 +26,7 @@
         </section>
       </header>
 
-      <section class="page" id="page" aria-live="polite"></section>
+      <section class="page p-1" id="page" aria-live="polite"></section>
 
       <footer class="menu-shell">
         <div class="page-name" id="page-name">matrix</div>
@@ -36,7 +36,7 @@
           <button class="menu-button" type="button" data-page="programs">P</button>
           <button class="menu-button" type="button" data-page="roguePrograms">G</button>
           <button class="menu-button" type="button" data-page="operator">O</button>
-          <button class="menu-button" type="button" data-page="executions">E</button>
+          <button class="menu-button" type="button" data-page="EMP">E</button>
         </nav>
         <nav class="menu-row menu-row-bottom" aria-label="Secondary menu">
           <button class="menu-button" type="button" data-page="story">S</button>

@@ -55,10 +55,10 @@
     if (!Number.isFinite(decimalNumber)) return decimal.toString().replace(/\.\d+/g, "");
     const number = Math.max(0, decimalNumber || 0);
     if (number <= shortenAt) {
-      return number.toFixed(decimals);
+      return String(Math.floor(number));
     }
 
-    const units = ["k", "M", "B", "T"];
+    const units = ["K", "M", "G", "T"];
     let scaled = number;
     let unit = "";
     for (const next of units) {

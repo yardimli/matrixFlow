@@ -13,6 +13,11 @@
   --disabled: #606865;
   --border: rgba(238, 246, 241, 0.74);
   --shadow-cyan: 0 0 18px rgba(0, 216, 255, 0.42);
+  --font-small: 12px;
+  --font-regular: 14px;
+  --font-subtitle: 16px;
+  --font-heading: 18px;
+  --font-button: 22px;
 }
 
 * {
@@ -23,16 +28,60 @@
   display: none !important;
 }
 
+.m-0 { margin: 0; }
+.m-1 { margin: 4px; }
+.m-2 { margin: 8px; }
+.m-3 { margin: 12px; }
+.m-4 { margin: 16px; }
+.m-5 { margin: 20px; }
+.m-6 { margin: 24px; }
+.m-8 { margin: 32px; }
+.mx-auto { margin-right: auto; margin-left: auto; }
+.mt-1 { margin-top: 4px; }
+.mt-2 { margin-top: 8px; }
+.mt-3 { margin-top: 12px; }
+.mt-4 { margin-top: 16px; }
+.mt-5 { margin-top: 22px; }
+.mt-6 { margin-top: 24px; }
+.mt-8 { margin-top: 32px; }
+.mb-1 { margin-bottom: 4px; }
+.mb-2 { margin-bottom: 8px; }
+.mb-3 { margin-bottom: 12px; }
+.p-0 { padding: 0; }
+.p-1 { padding: 4px; }
+.p-2 { padding: 8px; }
+.p-3 { padding: 12px; }
+.p-4 { padding: 16px; }
+.p-5 { padding: 20px; }
+.p-6 { padding: 24px; }
+.p-8 { padding: 32px; }
+.p-half { padding: 2px; }
+.px-1 { padding-right: 4px; padding-left: 4px; }
+.px-2 { padding-right: 8px; padding-left: 8px; }
+.py-1 { padding-top: 4px; padding-bottom: 4px; }
+.py-2 { padding-top: 8px; padding-bottom: 8px; }
+.pr-half { padding-right: 2px; }
+.pt-half { padding-top: 2px; }
+.pt-1 { padding-top: 4px; }
+.pt-2 { padding-top: 8px; }
+.pt-3 { padding-top: 9px; }
+.p-safe-shell {
+  padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+}
+.p-safe-overlay {
+  padding: max(18px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+}
+
 html,
 body {
   width: 100%;
   height: 100%;
   min-height: 100%;
-  margin: 0;
   overflow: hidden;
   background: var(--bg);
   color: var(--text);
   font-family: "Courier New", ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: var(--font-regular);
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
@@ -41,6 +90,7 @@ body {
 
 button {
   font: inherit;
+  font-size: var(--font-button);
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   -webkit-user-select: none;
@@ -75,10 +125,8 @@ button:not(:disabled).can-afford.button-pressed,
   position: relative;
   z-index: 1;
   height: 100svh;
-  min-height: 0;
+
   width: min(100%, 600px);
-  margin: 0 auto;
-  padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 6px;
@@ -98,13 +146,13 @@ button:not(:disabled).can-afford.button-pressed,
 }
 
 .metric strong {
-  font-size: clamp(1.35rem, 5.6vw, 3.2rem);
+  font-size: var(--font-heading);
   line-height: 1;
   font-weight: 400;
 }
 
 .metric span {
-  font-size: clamp(0.72rem, 2.3vw, 1.2rem);
+  font-size: var(--font-small);
 }
 
 .metric-primary {
@@ -114,7 +162,6 @@ button:not(:disabled).can-afford.button-pressed,
 .metric-core {
   color: var(--green);
   text-align: center;
-  margin-top: 32px;
 }
 
 .metric-secondary,
@@ -133,17 +180,16 @@ button:not(:disabled).can-afford.button-pressed,
 }
 
 .page {
-  min-height: 0;
+
   max-height: 100%;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 4px 0 6px;
   scrollbar-color: var(--cyan) rgba(255, 255, 255, 0.12);
   touch-action: pan-y;
 }
 
 .research-page {
-  min-height: 0;
+
   height: 100%;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
@@ -159,10 +205,9 @@ button:not(:disabled).can-afford.button-pressed,
 }
 
 .download-stage {
-  min-height: 0;
+
   display: grid;
   place-items: center;
-  padding: 6px 0;
 }
 
 .download-panel {
@@ -175,16 +220,16 @@ button:not(:disabled).can-afford.button-pressed,
 }
 
 .download-label {
-  min-height: 1.2em;
+  min-height: 20px;
   justify-self: center;
-  font-size: clamp(1rem, 4vw, 1.45rem);
+  font-size: var(--font-subtitle);
   letter-spacing: 0;
 }
 
 .download-bar {
   position: relative;
   width: 100%;
-  height: clamp(18px, 4.2vw, 28px);
+  height: 24px;
   overflow: hidden;
   border: 1px solid rgba(232, 255, 239, 0.32);
   background:
@@ -209,8 +254,8 @@ button:not(:disabled).can-afford.button-pressed,
 }
 
 .download-percent {
-  min-height: 1.1em;
-  font-size: clamp(1.15rem, 5vw, 1.8rem);
+  min-height: 18px;
+  font-size: var(--font-heading);
   line-height: 1;
 }
 
@@ -234,16 +279,15 @@ button:not(:disabled).can-afford.button-pressed,
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
-  margin: 0 0 8px;
 }
 
 .subtab {
   min-height: 52px;
   border: 2px solid var(--border);
-  border-radius: 6px;
+  border-radius: 4px;
   background: var(--panel-strong);
   color: var(--text);
-  font-size: clamp(1.25rem, 5vw, 2rem);
+  font-size: var(--font-button);
   cursor: pointer;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
 }
@@ -260,14 +304,13 @@ button:not(:disabled).can-afford.button-pressed,
 .card,
 .reboot-card {
   width: 100%;
-  min-height: 74px;
+  min-height: 64px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 14px;
-  padding: 10px 12px;
   border: 2px solid var(--border);
-  border-radius: 6px;
+  border-radius: 4px;
   background: var(--panel-strong);
   color: var(--text);
   text-align: left;
@@ -300,14 +343,14 @@ button:not(:disabled).can-afford.button-pressed,
 .upgrade strong,
 .card strong {
   font-weight: 400;
-  font-size: clamp(0.92rem, 2.6vw, 1.18rem);
+  font-size: var(--font-subtitle);
 }
 
 .upgrade small,
 .card small,
 .muted {
   color: var(--muted);
-  font-size: clamp(0.72rem, 2.1vw, 0.92rem);
+  font-size: var(--font-small);
 }
 
 .meta {
@@ -350,7 +393,6 @@ button:not(:disabled).can-afford.button-pressed,
   align-items: stretch;
   justify-content: stretch;
   justify-items: stretch;
-  padding: 5px 4px 3px;
   border-width: 3px;
 }
 
@@ -363,40 +405,38 @@ button:not(:disabled).can-afford.button-pressed,
 
 .research-panel .card strong,
 .program-card strong {
-  font-size: clamp(1rem, 3.4vw, 1.45rem);
+  font-size: var(--font-subtitle);
 }
 
 .research-panel .card small,
 .program-card small {
-  font-size: clamp(0.85rem, 2.8vw, 1.1rem);
+  font-size: var(--font-regular);
 }
 
 .research-panel {
-  min-height: 0;
+
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding-right: 2px;
   scrollbar-color: var(--cyan) rgba(255, 255, 255, 0.12);
 }
 
 .programs-page {
   height: 100%;
-  min-height: 0;
+
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
   align-content: start;
   gap: 12px;
   overflow: hidden;
-  padding: 0px;
   touch-action: pan-y;
 }
 
 .programs-status {
-  min-height: clamp(23px, 5vh, 43px);
+  min-height: 32px;
   display: grid;
   place-items: center;
   color: var(--text);
-  font-size: clamp(1.2rem, 5vw, 2.45rem);
+  font-size: var(--font-heading);
   text-align: center;
   text-shadow: 0 0 12px rgba(242, 245, 242, 0.24);
 }
@@ -407,19 +447,17 @@ button:not(:disabled).can-afford.button-pressed,
   grid-template-rows: auto minmax(0, 1fr);
   align-content: start;
   gap: 14px;
-  padding: clamp(14px, 4vh, 44px) 0 0;
 }
 
 .operator-hint {
   grid-column: 1 / -1;
-  margin: 0;
   color: var(--muted);
-  font-size: clamp(0.9rem, 3vw, 1.2rem);
+  font-size: var(--font-small);
   text-align: center;
 }
 
 .operator-choice-grid {
-  min-height: 0;
+
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-content: start;
@@ -428,10 +466,10 @@ button:not(:disabled).can-afford.button-pressed,
 
 .programs-bar {
   position: relative;
-  height: clamp(18px, 3.8vh, 28px);
+  height: 24px;
   overflow: hidden;
   border: 2px solid rgba(0, 216, 255, 0.78);
-  border-radius: 8px;
+  border-radius: 4px;
   background: rgba(8, 24, 27, 0.9);
   box-shadow: var(--shadow-cyan), inset 0 0 0 1px rgba(232, 255, 239, 0.24);
 }
@@ -449,7 +487,7 @@ button:not(:disabled).can-afford.button-pressed,
 }
 
 .program-list {
-  min-height: 0;
+
   height: 100%;
   display: grid;
   align-content: start;
@@ -457,14 +495,12 @@ button:not(:disabled).can-afford.button-pressed,
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  padding-right: 2px;
   scrollbar-color: var(--cyan) rgba(255, 255, 255, 0.12);
   touch-action: pan-y;
 }
 
 .rogue-programs-page {
   grid-template-rows: minmax(0, 1fr);
-  padding-top: 0;
 }
 
 .rogue-program-grid {
@@ -480,7 +516,7 @@ button:not(:disabled).can-afford.button-pressed,
   width: 100%;
   gap: 6px;
   border: 3px solid var(--border);
-  border-radius: 6px;
+  border-radius: 4px;
   background: var(--panel-strong);
   color: var(--text);
   text-align: center;
@@ -509,21 +545,20 @@ button:not(:disabled).can-afford.button-pressed,
 }
 
 .operator-card {
-  min-height: clamp(142px, 24vh, 230px);
+  min-height: 180px;
   align-content: space-between;
   gap: 10px;
-  padding: clamp(10px, 2.4vh, 18px) clamp(8px, 2vw, 14px);
 }
 
 .operator-card strong {
-  font-size: clamp(0.98rem, 3.4vw, 1.45rem);
+  font-size: var(--font-subtitle);
 }
 
 .operator-card small {
   display: grid;
-  gap: clamp(8px, 2vh, 16px);
+  gap: 12px;
   color: inherit;
-  font-size: clamp(0.78rem, 2.55vw, 1.05rem);
+  font-size: var(--font-regular);
   line-height: 1.35;
 }
 
@@ -570,22 +605,16 @@ button:disabled,
 }
 
 .page-title {
-  margin: 0 0 12px;
   color: var(--cyan);
-  font-size: clamp(1.2rem, 4vw, 2rem);
+  font-size: var(--font-heading);
   font-weight: 400;
   text-align: center;
 }
 
 .panel {
-  padding: 10px;
   border: 2px solid rgba(238, 246, 241, 0.58);
-  border-radius: 6px;
+  border-radius: 4px;
   background: var(--panel-soft);
-}
-
-.panel + .panel {
-  margin-top: 10px;
 }
 
 .accordion {
@@ -600,15 +629,14 @@ button:disabled,
 }
 
 .accordion-item summary {
-  min-height: clamp(30px, 5vh, 50px);
+  min-height: 40px;
   display: flex;
   align-items: center;
-  padding: 8px clamp(28px, 10vw, 64px);
   border: 3px solid var(--border);
-  border-radius: 6px;
+  border-radius: 4px;
   background: var(--panel-strong);
   color: var(--text);
-  font-size: clamp(1rem, 3.4vw, 1.45rem);
+  font-size: var(--font-subtitle);
   line-height: 1;
   cursor: pointer;
   list-style: none;
@@ -628,11 +656,9 @@ button:disabled,
 }
 
 .accordion-item p {
-  margin: 0;
-  padding: clamp(12px, 2.5vh, 22px) clamp(14px, 3.5vw, 24px);
   border-top: 0;
   color: var(--text);
-  font-size: clamp(1.15rem, 4.8vw, 2rem);
+  font-size: var(--font-regular);
   line-height: 1.5;
   white-space: pre-line;
 }
@@ -651,13 +677,12 @@ button:disabled,
 }
 
 .stat-header {
-  padding: 28px 0 20px;
   color: var(--text);
   text-transform: capitalize;
 }
 
 .stat-row {
-  min-height: clamp(32px, 4.25vh, 57px);
+  min-height: 40px;
   color: var(--text);
 }
 
@@ -672,28 +697,25 @@ button:disabled,
 }
 
 .statistics-page {
-  padding: clamp(12px, 3vh, 40px) 0 0;
   background: transparent;
   border: 0;
 }
 
 .statistics-page .stat-header,
 .statistics-page .stat-row {
-  font-size: clamp(0.98rem, 3vw, 1.45rem);
+  font-size: var(--font-regular);
 }
 
 .statistics-page .stat-header {
-  font-size: clamp(1rem, 3.2vw, 1.5rem);
+  font-size: var(--font-subtitle);
 }
 
 .stat-calculations-toggle {
   display: block;
-  margin: clamp(16px, 4vh, 28px) auto 0;
-  padding: 4px 0;
   border: 0;
   background: transparent;
   color: var(--cyan);
-  font-size: clamp(0.95rem, 3vw, 1.3rem);
+  font-size: var(--font-button);
   text-decoration: underline;
   text-underline-offset: 4px;
   cursor: pointer;
@@ -703,8 +725,6 @@ button:disabled,
 .stat-calculations {
   display: grid;
   gap: 10px;
-  margin-top: clamp(12px, 3vh, 22px);
-  padding-top: clamp(14px, 3vh, 22px);
   border-top: 2px solid rgba(242, 245, 242, 0.42);
 }
 
@@ -719,12 +739,12 @@ button:disabled,
 .calc-row span,
 .calc-row strong {
   font-weight: 400;
-  font-size: clamp(0.95rem, 3vw, 1.3rem);
+  font-size: var(--font-regular);
 }
 
 .calc-row small {
   color: var(--muted);
-  font-size: clamp(0.72rem, 2.2vw, 0.9rem);
+  font-size: var(--font-small);
   line-height: 1.35;
 }
 
@@ -741,16 +761,14 @@ button:disabled,
 .story-entry {
   display: grid;
   justify-items: center;
-  padding: 16px 16px 18px;
   border-bottom: 2px solid rgba(242, 245, 242, 0.78);
   text-align: center;
 }
 
 .story-entry p {
-  margin: 0;
   max-width: 760px;
   color: var(--text);
-  font-size: clamp(0.98rem, 3vw, 1.35rem);
+  font-size: var(--font-regular);
   line-height: 1.5;
 }
 
@@ -760,7 +778,6 @@ button:disabled,
   z-index: 20;
   display: grid;
   place-items: center;
-  padding: max(18px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
   background: rgba(7, 9, 9, 0.96);
   text-align: center;
 }
@@ -769,13 +786,12 @@ button:disabled,
   width: min(100%, 520px);
   display: grid;
   justify-items: center;
-  gap: clamp(22px, 6vh, 44px);
+  gap: 32px;
 }
 
 .story-overlay p {
-  margin: 0;
   color: var(--text);
-  font-size: clamp(1.1rem, 4.5vw, 2rem);
+  font-size: var(--font-regular);
   line-height: 1.5;
   text-shadow: 0 0 12px rgba(242, 245, 242, 0.2);
 }
@@ -784,7 +800,7 @@ button:disabled,
   min-width: 160px;
   min-height: 54px;
   border: 2px solid var(--cyan);
-  border-radius: 6px;
+  border-radius: 4px;
   background: rgba(0, 216, 255, 0.12);
   color: var(--cyan);
   cursor: pointer;
@@ -795,12 +811,11 @@ button:disabled,
   position: absolute;
   top: 0;
   right: 0;
-  bottom: clamp(128px, 22svh, 168px);
+  bottom: 148px;
   left: 0;
   z-index: 14;
   display: grid;
   place-items: center;
-  padding: 12px;
   background: rgba(7, 9, 9, 0.95);
 }
 
@@ -820,22 +835,22 @@ button:disabled,
 }
 
 .crash-title {
-  font-size: clamp(1.05rem, 4vw, 1.5rem);
+  font-size: var(--font-heading);
 }
 
 .crash-countdown {
-  min-height: 1.1em;
+  min-height: 18px;
   color: var(--orange);
-  font-size: clamp(2.4rem, 13vw, 6rem);
+  font-size: var(--font-heading);
   line-height: 1;
   text-shadow: 0 0 18px rgba(255, 174, 66, 0.5);
 }
 
 .crash-reward,
 .crash-jumps {
-  min-height: 1.1em;
+  min-height: 18px;
   color: var(--text);
-  font-size: clamp(0.9rem, 3vw, 1.2rem);
+  font-size: var(--font-regular);
 }
 
 .crash-track {
@@ -843,7 +858,7 @@ button:disabled,
   height: 170px;
   overflow: hidden;
   border: 2px solid rgba(0, 216, 255, 0.55);
-  border-radius: 6px;
+  border-radius: 4px;
   background:
     linear-gradient(180deg, rgba(0, 216, 255, 0.14), transparent 48%),
     linear-gradient(90deg, rgba(0, 216, 255, 0.16) 1px, transparent 1px),
@@ -936,30 +951,24 @@ button:disabled,
   display: grid;
   gap: 12px;
   justify-items: center;
-  padding: 14px 4px 16px;
   border-bottom: 2px solid rgba(242, 245, 242, 0.78);
   text-align: center;
 }
 
-.backdoor-entry:first-child {
-  padding-top: 6px;
-}
-
 .backdoor-entry strong {
-  font-size: clamp(1rem, 3.4vw, 1.45rem);
+  font-size: var(--font-subtitle);
   font-weight: 400;
 }
 
 .backdoor-entry p {
   max-width: 760px;
-  margin: 0;
-  font-size: clamp(0.92rem, 3vw, 1.3rem);
+  font-size: var(--font-regular);
   line-height: 1.45;
 }
 
 .backdoor-entry small {
   color: inherit;
-  font-size: clamp(0.86rem, 2.7vw, 1.15rem);
+  font-size: var(--font-small);
 }
 
 .backdoor-unlocked {
@@ -989,9 +998,9 @@ button:disabled,
 }
 
 .page-name {
-  min-height: 1.2em;
+  min-height: 20px;
   color: var(--text);
-  font-size: clamp(1rem, 3.4vw, 1.45rem);
+  font-size: var(--font-subtitle);
 }
 
 .menu-row {
@@ -1002,13 +1011,13 @@ button:disabled,
 }
 
 .menu-button {
-  width: clamp(48px, 14vw, 74px);
+  width: 56px;
   aspect-ratio: 1;
   border: 2px solid var(--border);
-  border-radius: 6px;
+  border-radius: 4px;
   background: var(--panel-strong);
   color: var(--text);
-  font-size: clamp(1.5rem, 6vw, 2.5rem);
+  font-size: var(--font-button);
   line-height: 1;
   cursor: pointer;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
@@ -1031,16 +1040,14 @@ button:disabled,
   display: grid;
   place-items: center;
   align-content: center;
-  gap: clamp(12px, 4vh, 22px);
-  padding: clamp(10px, 2.5vh, 28px) 4px;
+  gap: 16px;
   text-align: center;
 }
 
 .reboot-page p {
   max-width: 780px;
-  margin: 0;
   color: var(--text);
-  font-size: clamp(1.1rem, 3.8vw, 2rem);
+  font-size: var(--font-regular);
   line-height: 1.45;
 }
 
@@ -1051,7 +1058,7 @@ button:disabled,
 
 .reboot-page .reboot-small {
   color: var(--muted);
-  font-size: clamp(0.9rem, 2.5vw, 1.15rem);
+  font-size: var(--font-small);
 }
 
 .reboot-button {
@@ -1059,7 +1066,7 @@ button:disabled,
   min-width: 152px;
   min-height: 54px;
   border: 2px solid var(--orange);
-  border-radius: 6px;
+  border-radius: 4px;
   background: rgba(255, 174, 66, 0.12);
   color: var(--orange);
 }
@@ -1069,16 +1076,14 @@ button:disabled,
   display: grid;
   justify-items: center;
   align-content: center;
-  gap: clamp(16px, 4vh, 32px);
-  padding: clamp(16px, 4vh, 44px) clamp(12px, 5vw, 32px);
+  gap: 24px;
   text-align: center;
 }
 
 .about-page p {
   max-width: 760px;
-  margin: 0;
   color: var(--text);
-  font-size: clamp(1rem, 3.8vw, 1.65rem);
+  font-size: var(--font-regular);
   line-height: 1.5;
 }
 
@@ -1092,10 +1097,6 @@ button:disabled,
   text-underline-offset: 3px;
 }
 
-.about-page .reboot-button {
-  margin-top: 4px;
-}
-
 .dev-multiplier-row {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1106,7 +1107,7 @@ button:disabled,
 .dev-multiplier {
   min-height: 44px;
   border: 2px solid var(--border);
-  border-radius: 6px;
+  border-radius: 4px;
   background: var(--panel-strong);
   color: var(--text);
   cursor: pointer;
@@ -1129,7 +1130,6 @@ button:disabled,
 
 @media (min-width: 760px) {
   .game-shell {
-    padding: 16px 20px 14px;
     gap: 8px;
   }
 
@@ -1137,144 +1137,6 @@ button:disabled,
     width: min(620px, 100%);
   }
 
-  .metric strong {
-    font-size: clamp(0.945rem, 3.92vw, 2.24rem);
-  }
-
-  .metric span {
-    font-size: clamp(0.504rem, 1.61vw, 0.84rem);
-  }
-
-  .download-label {
-    font-size: clamp(0.7rem, 2.8vw, 1.015rem);
-  }
-
-  .download-percent {
-    font-size: clamp(0.805rem, 3.5vw, 1.26rem);
-  }
-
-  .subtab {
-    font-size: clamp(0.875rem, 3.5vw, 1.4rem);
-  }
-
-  .upgrade strong,
-  .card strong {
-    font-size: clamp(0.644rem, 1.82vw, 0.826rem);
-  }
-
-  .upgrade small,
-  .card small,
-  .muted {
-    font-size: clamp(0.504rem, 1.47vw, 0.644rem);
-  }
-
-  .research-panel .card strong {
-    font-size: clamp(0.7rem, 2.38vw, 1.015rem);
-  }
-
-  .research-panel .card small {
-    font-size: clamp(0.595rem, 1.96vw, 0.77rem);
-  }
-
-  .programs-status {
-    font-size: clamp(0.84rem, 3.5vw, 1.715rem);
-  }
-
-  .operator-hint {
-    font-size: clamp(0.63rem, 2.1vw, 0.84rem);
-  }
-
-  .program-card strong {
-    font-size: clamp(0.784rem, 2.8vw, 1.155rem);
-  }
-
-  .program-card small {
-    font-size: clamp(0.63rem, 2.1vw, 0.84rem);
-  }
-
-  .page-title {
-    font-size: clamp(0.84rem, 2.8vw, 1.4rem);
-  }
-
-  .accordion-item summary {
-    font-size: clamp(0.7rem, 2.38vw, 1.015rem);
-  }
-
-  .accordion-item p {
-    font-size: clamp(0.805rem, 3.36vw, 1.4rem);
-  }
-
-  .statistics-page .stat-header,
-  .statistics-page .stat-row {
-    font-size: clamp(0.686rem, 2.1vw, 1.015rem);
-  }
-
-  .statistics-page .stat-header {
-    font-size: clamp(0.7rem, 2.24vw, 1.05rem);
-  }
-
-  .stat-calculations-toggle,
-  .calc-row span,
-  .calc-row strong {
-    font-size: clamp(0.665rem, 2.1vw, 0.91rem);
-  }
-
-  .calc-row small {
-    font-size: clamp(0.504rem, 1.54vw, 0.63rem);
-  }
-
-  .story-entry p {
-    font-size: clamp(0.686rem, 2.1vw, 0.945rem);
-  }
-
-  .story-overlay p {
-    font-size: clamp(0.77rem, 3.15vw, 1.4rem);
-  }
-
-  .crash-title {
-    font-size: clamp(0.735rem, 2.8vw, 1.05rem);
-  }
-
-  .crash-countdown {
-    font-size: clamp(1.68rem, 9.1vw, 4.2rem);
-  }
-
-  .crash-reward,
-  .crash-jumps {
-    font-size: clamp(0.63rem, 2.1vw, 0.84rem);
-  }
-
-  .backdoor-entry strong {
-    font-size: clamp(0.7rem, 2.38vw, 1.015rem);
-  }
-
-  .backdoor-entry p {
-    font-size: clamp(0.644rem, 2.1vw, 0.91rem);
-  }
-
-  .backdoor-entry small {
-    font-size: clamp(0.602rem, 1.89vw, 0.805rem);
-  }
-
-  .page-name {
-    font-size: clamp(0.7rem, 2.38vw, 1.015rem);
-  }
-
-  .menu-button {
-    font-size: clamp(1.05rem, 4.2vw, 1.75rem);
-  }
-
-  .reboot-page p {
-    font-size: clamp(0.77rem, 2.66vw, 1.4rem);
-  }
-
-  .reboot-page .reboot-small {
-    font-size: clamp(0.63rem, 1.75vw, 0.805rem);
-  }
-
-  .about-page {
-    font-size: clamp(0.7rem, 2.66vw, 1.155rem);
-  }
 }
 
 @media (max-width: 380px) {

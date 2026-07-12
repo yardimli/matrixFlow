@@ -28,7 +28,7 @@
     "tapLevelBonus": 0.42,
     "ramExecutionsPerSecond": 1.2,
     "ramLevelBonus": 0.055,
-    "holdTapIntervalMs": 145
+    "holdTapIntervalMs": 600
   },
   "ramDisplay": {
     "baseKilobytes": 64,
