@@ -83,6 +83,10 @@
         research: {},
         unlockedStories: {},
         backdoors: {},
+        intro: {
+          redPillTaken: false,
+          firstRain: false
+        },
         operator: {
           unlocked: false,
           choice: null,
@@ -101,6 +105,14 @@
       next.research ||= {};
       next.unlockedStories ||= {};
       next.backdoors ||= {};
+      const hasPlayed = finiteNumber(next.total?.taps) > 0 || finiteNumber(next.lifetime?.taps) > 0;
+      next.intro = {
+        redPillTaken: hasPlayed,
+        firstRain: hasPlayed,
+        ...(next.intro || {})
+      };
+      next.intro.redPillTaken = Boolean(next.intro.redPillTaken);
+      next.intro.firstRain = Boolean(next.intro.firstRain);
       next.bots = { owned: 0, operator: 0, ...(next.bots || {}) };
       next.operator = { unlocked: false, choice: null, tier2Choice: null, ...(next.operator || {}) };
       next.programs = { ...freshPrograms(), ...(next.programs || {}) };

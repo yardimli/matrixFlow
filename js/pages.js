@@ -2,7 +2,7 @@
   const { D, formatNumber, formatTime } = window.MF.utils;
 
   function createPages(context) {
-    const { config, state, programDownloadData, researchData, storyData, backdoorData, helpData, economy, isDebugMode, getDevClickMultiplier, getShowCalculations } = context;
+    const { config, state, programDownloadData, researchData, storyData, backdoorData, helpData, economy, isDebugMode, getDevClickMultiplier, getShowCalculations, getResearchForecastHashes, getProgramForecastHashes } = context;
     const WHOLE_EXPONENTIAL = { scientificDecimals: 2 };
 
     function renderMatrixPage() {
@@ -14,7 +14,7 @@
       return `
         <div class="matrix-page" id="matrix-page">
           <section class="download-stage p-1" aria-label="Mini upgrade download">
-            ${renderFirstRamDownload()}
+            ${renderActiveProgramDownloads()}
           </section>
           <section class="upgrade-stack" aria-label="Upgrades">
             ${renderUpgrade("tap-upgrade", tapUnlocked, D(state.hashes).gte(tapCost), maxBuyUnlocked, "executions / tap", `+${formatNumber(economy.getExecutionsPerTap())} executions / tap`, `level ${state.tapLevel}`, `cost ${formatNumber(tapCost, { shortenAt: 100000 })}`)}
@@ -24,19 +24,25 @@
       `;
     }
 
-    function renderFirstRamDownload() {
-      const item = getProgramDownloadItem("kung_fu");
-      const download = getProgramDownload("kung_fu");
-      if (!item) return "";
-      if (!download?.started || download.complete) return "";
+    function renderActiveProgramDownloads() {
+      return programDownloadData
+        .filter((item) => {
+          const download = getProgramDownload(item.id);
+          return download?.started && !download.complete;
+        })
+        .map(renderProgramDownloadPanel)
+        .join("");
+    }
+
+    function renderProgramDownloadPanel(item) {
       const progress = getDownloadProgress(item);
       return `
         <div class="download-panel">
-          <div class="download-label" id="download-label" data-download-label-id="${item.id}">${getDownloadLabel(item)}</div>
+          <div class="download-label" data-download-label-id="${item.id}">${getDownloadLabel(item)}</div>
           <div class="download-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.floor(progress)}">
-            <div class="download-bar-fill" id="download-bar-fill" style="width: ${progress}%"></div>
+            <div class="download-bar-fill" data-download-bar-id="${item.id}" style="width: ${progress}%"></div>
           </div>
-          <div class="download-percent" id="download-percent">${Math.floor(progress)}%</div>
+          <div class="download-percent" data-download-percent-id="${item.id}">${Math.floor(progress)}%</div>
         </div>
       `;
     }
@@ -68,10 +74,6 @@
       return state.downloads?.programs?.[id] || { started: false, complete: false, bytes: 0 };
     }
 
-    function getProgramDownloadItem(id) {
-      return programDownloadData.find((program) => program.id === id);
-    }
-
     function getProgramDownloadRequirementText(program) {
       const hashText = `${formatNumber(program.hashRequirement || 0, WHOLE_EXPONENTIAL)} hashes`;
       if (!program.executionRequirement) return hashText;
@@ -93,7 +95,11 @@
     }
 
     function renderResearchPage() {
-      const available = researchData.filter((item) => !economy.isResearchBought(item.id));
+      const forecastHashes = D(getResearchForecastHashes?.() || state.hashes);
+      const unpurchased = researchData.filter((item) => !economy.isResearchBought(item.id));
+      const inRange = unpurchased.filter((item) => forecastHashes.gte(economy.getResearchCost(item)));
+      const nextOutOfRange = inRange.length ? unpurchased.find((item) => forecastHashes.lt(economy.getResearchCost(item))) : null;
+      const available = inRange.length ? [...inRange, ...(nextOutOfRange ? [nextOutOfRange] : [])] : unpurchased.slice(0, 1);
       const purchased = researchData.filter((item) => economy.isResearchBought(item.id));
       return `
         <div class="research-page">
@@ -102,7 +108,7 @@
           <button class="subtab" type="button" data-research-view="purchased">purchased</button>
         </div>
         <section class="card-grid research-panel pr-half" data-research-panel="available">
-          ${available.length ? available.map(renderAvailableResearch).join("") : `<article class="card p-1"><span><strong>no available research</strong><small>The machine has no unnamed doors left in this run.</small></span></article>`}
+          ${available.length ? available.map(renderAvailableResearch).join("") : `<article class="card p-1"><span><strong>research complete</strong><small>The machine has no unnamed doors left in this run.</small></span></article>`}
         </section>
         <section class="card-grid research-panel pr-half hidden" data-research-panel="purchased">
           ${purchased.length ? purchased.map(renderPurchasedResearch).join("") : `<article class="card p-1"><span><strong>nothing purchased</strong><small>No research has crossed from rumor into memory.</small></span></article>`}
@@ -156,6 +162,7 @@
       const activePrograms = economy.getActivePrograms();
       const running = activePrograms.length;
       const slots = Math.max(1, Number(state.programs?.slots || config.programs?.slots || 1));
+      const visiblePrograms = getVisiblePrograms();
       return `
         <section class="programs-page p-half">
           <div class="programs-status">
@@ -165,10 +172,37 @@
             <div class="programs-bar-fill" style="width: ${Math.min(100, (running / slots) * 100)}%"></div>
           </div>
           <div class="program-list pr-half">
-            ${programDownloadData.map((program) => renderProgramDownloadCard(program, activePrograms, slots)).join("")}
+            ${visiblePrograms.length ? visiblePrograms.map((program) => renderProgramDownloadCard(program, activePrograms, slots)).join("") : `<article class="program-card p-1 locked"><span class="research-copy"><strong>programs complete</strong><small>All normal programs have been downloaded.</small></span></article>`}
           </div>
         </section>
       `;
+    }
+
+    function getVisiblePrograms() {
+      const forecastHashes = D(getProgramForecastHashes?.() || state.hashes);
+      const visible = [];
+      let hasVisibleDownload = false;
+      let nextHiddenDownload = null;
+      for (const program of programDownloadData) {
+        const download = getProgramDownload(program.id);
+        if (download.complete) {
+          visible.push(program);
+          continue;
+        }
+        if (download.started || forecastHashes.gte(program.hashRequirement || 0)) {
+          visible.push(program);
+          hasVisibleDownload = true;
+          continue;
+        }
+        nextHiddenDownload ||= program;
+      }
+      if (hasVisibleDownload && nextHiddenDownload) {
+        visible.push(nextHiddenDownload);
+      } else if (!hasVisibleDownload) {
+        const nextDownload = programDownloadData.find((program) => !getProgramDownload(program.id).complete);
+        if (nextDownload) visible.push(nextDownload);
+      }
+      return visible;
     }
 
     function renderProgramDownloadCard(program, activePrograms, slots) {

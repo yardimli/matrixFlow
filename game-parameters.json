@@ -18,11 +18,6 @@
     "reboots": 0,
     "previousRunSourceCode": 1
   },
-  "unlocks": {
-    "tapUpgradeClicks": 5,
-    "ramExecutions": 100,
-    "ramTapLevel": 10
-  },
   "production": {
     "baseExecutionsPerTap": 1,
     "tapLevelBonus": 0.42,
@@ -31,7 +26,7 @@
     "holdTapIntervalMs": 600
   },
   "ramDisplay": {
-    "baseKilobytes": 64,
+    "baseKilobytes": 32,
     "growth": 2
   },
   "upgradeTables": {

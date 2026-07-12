@@ -39,10 +39,14 @@
     economy,
     isDebugMode: () => debugMode,
     getShowCalculations: () => showCalculations,
-    getDevClickMultiplier: () => devClickMultiplier
+    getDevClickMultiplier: () => devClickMultiplier,
+    getResearchForecastHashes: () => forecastHashes.research,
+    getProgramForecastHashes: () => forecastHashes.programs
   });
   const DOWNLOAD_BYTES_PER_EXECUTION = 4;
   const CRASH_RUNNER_X = 72;
+  const FORECAST_SECONDS = 600;
+  const FORECAST_REFRESH_SECONDS = 30;
 
   let activePage = config.ui.defaultPage;
   let holding = false;
@@ -50,14 +54,23 @@
   let lastFrame = performance.now();
   let pageDirty = true;
   let matrixUpgradeState = "";
+  let introOverlay = null;
+  let introMode = state.intro?.firstRain ? "done" : state.intro?.redPillTaken ? "redTap" : "choice";
   let storyOverlay = null;
   let storyQueue = [];
+  let storyContinueTimer = null;
   let crashScreen = null;
   let activeCrash = null;
   let resetting = false;
   let showCalculations = false;
+  let forecastHashes = {
+    research: String(state.hashes),
+    programs: String(state.hashes)
+  };
+  let nextForecastRefreshAt = 0;
 
   disableContextBehavior();
+  createIntroOverlay();
   createStoryOverlay();
   createCrashScreen();
   bindMenu();
@@ -82,12 +95,14 @@
   requestAnimationFrame(tick);
   syncProgramDownloadsOnLoad();
   render();
+  renderIntroOverlay();
 
   function bindMenu() {
     els.menuButtons.forEach((button) => {
       button.addEventListener("click", () => {
         if (button.hidden) return;
         activePage = button.dataset.page;
+        refreshForecastForPage(activePage, true);
         pageDirty = true;
         stopHolding();
         render();
@@ -126,6 +141,7 @@
     matrix.step(dt);
     updateCrash(dt);
     unlockProgress();
+    refreshForecastForActivePage();
     refreshMatrixUpgradeState();
     render(false);
     requestAnimationFrame(tick);
@@ -232,6 +248,25 @@
     render();
   }
 
+  function refreshForecastForActivePage(force = false) {
+    if (activePage !== "research" && activePage !== "programs") return;
+    if (!force && state.lifetime.time < nextForecastRefreshAt) return;
+    refreshForecastForPage(activePage, true);
+  }
+
+  function refreshForecastForPage(page, force = false) {
+    if (page !== "research" && page !== "programs") return;
+    if (!force && state.lifetime.time < nextForecastRefreshAt) return;
+    const forecast = getProjectedHashes(FORECAST_SECONDS);
+    forecastHashes[page] = forecast.toString();
+    nextForecastRefreshAt = state.lifetime.time + FORECAST_REFRESH_SECONDS;
+    pageDirty = true;
+  }
+
+  function getProjectedHashes(seconds) {
+    return D(state.hashes).plus(D(economy.getPassiveHashRate()).times(seconds));
+  }
+
   function syncProgramDownloadsOnLoad() {
     startEligibleProgramDownloads();
     for (const item of programDownloadData) {
@@ -294,6 +329,7 @@
     download.complete = true;
     download.bytes = String(item.downloadBytes);
     state.programs.unlocked[item.id] = true;
+    refreshForecastForPage("programs", true);
     pageDirty = true;
   }
 
@@ -439,6 +475,7 @@
     state.research[item.id] = true;
     state.lifetime.researchBought += 1;
     state.total.researchBought += 1;
+    refreshForecastForPage("research", true);
     pageDirty = true;
     render();
   }
@@ -554,6 +591,95 @@
     }
   }
 
+  function createIntroOverlay() {
+    introOverlay = document.createElement("section");
+    introOverlay.className = "intro-overlay p-safe-overlay hidden";
+    introOverlay.setAttribute("aria-modal", "true");
+    introOverlay.setAttribute("role", "dialog");
+    introOverlay.setAttribute("aria-label", "Pill choice");
+    introOverlay.innerHTML = `
+      <div class="intro-overlay-content" id="intro-overlay-content"></div>
+    `;
+    introOverlay.addEventListener("click", (event) => {
+      const button = event.target instanceof Element ? event.target.closest("[data-pill-choice]") : null;
+      if (button) {
+        choosePill(button.dataset.pillChoice);
+        return;
+      }
+      if (introMode === "redTap") finishRedIntroTap(event);
+    });
+    els.game.appendChild(introOverlay);
+  }
+
+  function renderIntroOverlay() {
+    if (!introOverlay || introMode === "done") {
+      introOverlay?.classList.add("hidden");
+      return;
+    }
+    introOverlay.classList.remove("hidden", "intro-fade-black", "intro-tv-off", "intro-rebooting");
+    const content = introOverlay.querySelector("#intro-overlay-content");
+    if (introMode === "choice") {
+      content.innerHTML = `
+        <p class="intro-question m-0">Which pill do you take?</p>
+        <div class="intro-pill-row">
+          <button class="intro-pill intro-pill-blue" type="button" data-pill-choice="blue">blue pill</button>
+          <button class="intro-pill intro-pill-red" type="button" data-pill-choice="red">red pill</button>
+        </div>
+      `;
+      return;
+    }
+    if (introMode === "redTap") {
+      content.innerHTML = `<p class="intro-question m-0">tap for next</p>`;
+    }
+  }
+
+  function choosePill(choice) {
+    if (choice === "blue") {
+      playBluePillSequence();
+      return;
+    }
+    if (choice !== "red") return;
+    state.intro.redPillTaken = true;
+    state.intro.firstRain = false;
+    introMode = "redTap";
+    renderIntroOverlay();
+    store.saveState(state);
+  }
+
+  function playBluePillSequence() {
+    if (!introOverlay) return;
+    introMode = "blue";
+    const content = introOverlay.querySelector("#intro-overlay-content");
+    content.innerHTML = `
+      <p class="intro-message m-0">The story ends. You wake in your bed and believe whatever you want to believe.</p>
+    `;
+    window.setTimeout(() => introOverlay.classList.add("intro-fade-black"), 1900);
+    window.setTimeout(() => introOverlay.classList.add("intro-tv-off"), 3200);
+    window.setTimeout(() => {
+      introMode = "reboot";
+      introOverlay.classList.remove("intro-tv-off");
+      introOverlay.classList.add("intro-rebooting");
+      content.innerHTML = `<p class="intro-question m-0">rebooting..</p>`;
+    }, 4600);
+    window.setTimeout(() => {
+      introMode = "choice";
+      renderIntroOverlay();
+    }, 5800);
+  }
+
+  function finishRedIntroTap(event) {
+    event?.preventDefault();
+    event?.stopPropagation();
+    state.intro.firstRain = true;
+    introMode = "done";
+    introOverlay.classList.add("hidden");
+    matrix.addDensity(config.matrix.maxDensity || 0.95);
+    for (let i = 0; i < 8; i += 1) matrix.pulse();
+    pulse();
+    render(false);
+    store.saveState(state);
+  }
+
   function createStoryOverlay() {
     storyOverlay = document.createElement("section");
     storyOverlay.className = "story-overlay p-safe-overlay hidden";
@@ -581,8 +707,16 @@
       return;
     }
     storyOverlay.querySelector("#story-overlay-text").textContent = entry.text;
+    const continueButton = storyOverlay.querySelector("#story-continue");
+    window.clearTimeout(storyContinueTimer);
+    continueButton.disabled = true;
+    continueButton.classList.remove("visible");
     storyOverlay.classList.remove("hidden");
-    storyOverlay.querySelector("#story-continue").focus({ preventScroll: true });
+    storyContinueTimer = window.setTimeout(() => {
+      continueButton.disabled = false;
+      continueButton.classList.add("visible");
+      continueButton.focus({ preventScroll: true });
+    }, 1000);
   }
 
   function closeStoryOverlay() {
@@ -885,20 +1019,21 @@
   }
 
   function updateDownloadBits() {
-    const item = programDownloadData.find((program) => program.id === "kung_fu");
     document.querySelectorAll("[data-download-label-id]").forEach((label) => {
       const program = programDownloadData.find((entry) => entry.id === label.dataset.downloadLabelId);
       if (!program) return;
       label.textContent = getProgramDownloadLabel(program);
     });
-    if (!item) return;
-    const download = getProgramDownload(item.id);
-    if (!download.started || download.complete) return;
-    const progress = getProgramDownloadProgress(item);
-    const bar = document.getElementById("download-bar-fill");
-    const percent = document.getElementById("download-percent");
-    if (bar) bar.style.width = `${progress}%`;
-    if (percent) percent.textContent = `${Math.floor(progress)}%`;
+    document.querySelectorAll("[data-download-bar-id]").forEach((bar) => {
+      const program = programDownloadData.find((entry) => entry.id === bar.dataset.downloadBarId);
+      if (!program) return;
+      bar.style.width = `${getProgramDownloadProgress(program)}%`;
+    });
+    document.querySelectorAll("[data-download-percent-id]").forEach((percent) => {
+      const program = programDownloadData.find((entry) => entry.id === percent.dataset.downloadPercentId);
+      if (!program) return;
+      percent.textContent = `${Math.floor(getProgramDownloadProgress(program))}%`;
+    });
   }
 
   function getProgramDownloadProgress(item) {
@@ -983,6 +1118,7 @@
 
   function startScreenPulse(event) {
     if (event.button !== undefined && event.button !== 0) return;
+    if (handleIntroPointer(event)) return;
     if (activeCrash) {
       event.preventDefault();
       event.stopPropagation();
@@ -995,6 +1131,7 @@
   function startTouchPulse(event) {
     const touch = event.changedTouches?.[0];
     if (!touch) return;
+    if (handleIntroPointer(event)) return;
     if (activeCrash) {
       event.preventDefault();
       event.stopPropagation();
@@ -1002,6 +1139,20 @@
       return;
     }
     startPulseFromEvent(event, touch.clientX, touch.clientY);
+  }
+
+  function handleIntroPointer(event) {
+    if (!introOverlay || introMode === "done" || introOverlay.classList.contains("hidden")) return false;
+    const target = event.target;
+    if (!(target instanceof Element) || !target.closest(".intro-overlay")) return false;
+    if (target.closest("[data-pill-choice]")) return false;
+    if (introMode === "redTap") {
+      finishRedIntroTap(event);
+      return true;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    return true;
   }
 
   function startPulseFromEvent(event, x, y) {
@@ -1024,6 +1175,7 @@
 
     const topElement = document.elementFromPoint(x, y);
     if (!(topElement instanceof Element)) return false;
+    if (topElement.closest(".intro-overlay")) return false;
     if (topElement.closest(".story-overlay")) return false;
     if (topElement.closest("strong, small, span, p, summary")) return false;
     if (topElement.closest(".card, .backdoor-entry, .story-entry, .stat-row, .accordion-item")) return false;

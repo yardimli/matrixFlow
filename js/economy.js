@@ -180,6 +180,14 @@
       return finiteNumber(base * getExecutionMultiplier() * (1 + effectSum("ramMultiplier")));
     }
 
+    function getHashGainForExecutions(executions) {
+      return finiteNumber(finiteNumber(executions) * (1 + effectSum("hashMultiplier")));
+    }
+
+    function getPassiveHashRate() {
+      return getHashGainForExecutions(getRamRate());
+    }
+
     function getCoreTarget() {
       const researchBoost = 1 + effectSum("coreMultiplier");
       const tapPart = Math.pow(Math.max(1, state.tapLevel), config.core.tapLevelPower);
@@ -259,16 +267,16 @@
     }
 
     function isTapUpgradeUnlocked() {
-      return state.total.taps >= config.unlocks.tapUpgradeClicks;
+      return state.total.taps >= 1;
     }
 
     function isRamUnlocked() {
-      return D(state.total.executions).gte(config.unlocks.ramExecutions) && state.tapLevel >= config.unlocks.ramTapLevel;
+      return state.ramLevel > 0 || D(state.hashes).gte(getRamCost());
     }
 
     function addExecutions(amount) {
       const gain = finiteNumber(amount);
-      const hashGain = finiteNumber(gain * (1 + effectSum("hashMultiplier")));
+      const hashGain = getHashGainForExecutions(gain);
       state.hashes = D(finiteDecimalString(state.hashes)).plus(hashGain).toString();
       state.lifetime.hashes = D(finiteDecimalString(state.lifetime.hashes)).plus(hashGain).toString();
       state.total.hashes = D(finiteDecimalString(state.total.hashes)).plus(hashGain).toString();
@@ -340,6 +348,8 @@
       getRuntimeBreakdown,
       getExecutionsPerTap,
       getRamRate,
+      getPassiveHashRate,
+      getHashGainForExecutions,
       getCoreTarget,
       getSourceDifficulty,
       getSourceCodeRate,

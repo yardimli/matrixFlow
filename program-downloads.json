@@ -21,7 +21,7 @@
     "name": "bot swarm",
     "description": "Start 256 temporary bots that raise every production calculation while the program is running.",
     "hashRequirement": 25000000,
-    "downloadBytes": 25000000,
+    "downloadBytes": 100000000,
     "effects": { "botFlat": 256 }
   },
   {
