@@ -38,12 +38,12 @@
 
   function formatNumber(value, options = {}) {
     const shortenAt = options.shortenAt ?? 1000;
-    const decimalsFromUnit = options.decimalsFromUnit || null;
-    const scientificDecimals = options.scientificDecimals ?? 2;
-    const scientificAt = D("1e14");
+    const decimals = options.decimals ?? 2;
+    const scientificDecimals = options.scientificDecimals ?? decimals;
+    const scientificAt = D(options.scientificAt || "1e13");
     let decimal = D(value);
     if (!Decimal.isFinite(decimal)) decimal = D(finiteDecimalString(value));
-    if (decimal.gt(scientificAt)) {
+    if (decimal.gte(scientificAt)) {
       if (decimal.layer > 1) return decimal.toString().replace(/\.\d+/g, "");
       const mantissa = scientificDecimals > 0
         ? decimal.mantissa.toFixed(scientificDecimals)
@@ -53,9 +53,9 @@
 
     const decimalNumber = decimal.toNumber();
     if (!Number.isFinite(decimalNumber)) return decimal.toString().replace(/\.\d+/g, "");
-    const number = Math.floor(Math.max(0, decimalNumber || 0));
+    const number = Math.max(0, decimalNumber || 0);
     if (number <= shortenAt) {
-      return String(number);
+      return number.toFixed(decimals);
     }
 
     const units = ["k", "M", "B", "T"];
@@ -66,8 +66,7 @@
       scaled /= 1000;
       unit = next;
     }
-    const decimals = decimalsFromUnit && units.indexOf(unit) >= units.indexOf(decimalsFromUnit) ? 2 : 0;
-    const shown = decimals > 0 ? scaled.toFixed(decimals) : String(Math.floor(scaled));
+    const shown = scaled.toFixed(decimals);
     return `${shown}${unit}`;
   }
 

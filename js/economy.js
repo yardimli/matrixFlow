@@ -24,14 +24,45 @@
     }
 
     function programEffectSum(key) {
-      const program = getActiveProgram();
-      return finiteNumber(Number(program?.effects?.[key] || 0));
+      return getActivePrograms().reduce((sum, program) => sum + Number(program?.effects?.[key] || 0), 0);
     }
 
     function getActiveProgram() {
-      const activeId = state.programs?.active;
-      if (!activeId || !state.programs?.unlocked?.[activeId]) return null;
-      return (config.programs?.items || []).find((program) => program.id === activeId) || null;
+      return getActivePrograms()[0] || null;
+    }
+
+    function getActivePrograms() {
+      const activeIds = Array.isArray(state.programs?.active) ? state.programs.active : state.programs?.active ? [state.programs.active] : [];
+      return activeIds
+        .filter((id) => state.programs?.unlocked?.[id])
+        .map((id) => (config.programs?.items || []).find((program) => program.id === id))
+        .filter(Boolean);
+    }
+
+    function getRogueProgramLevel(id) {
+      return Math.max(0, finiteNumber(state.roguePrograms?.levels?.[id]));
+    }
+
+    function getRogueProgramMultiplier() {
+      if (!state.roguePrograms?.unlocked) return 1;
+      return (config.roguePrograms?.items || []).reduce((product, program) => {
+        const level = getRogueProgramLevel(program.id);
+        if (level <= 0) return product;
+        const perLevel = Number(program.effects?.hashMultiplier || 0);
+        return product * Math.pow(1 + perLevel, level);
+      }, 1);
+    }
+
+    function getRogueProgramCost(program) {
+      const level = getRogueProgramLevel(program.id);
+      const exponentStart = finiteNumber(config.roguePrograms?.costExponentStart, 16);
+      return D(`1e${exponentStart + level}`).floor();
+    }
+
+    function getProgramSlotUpgradeCost() {
+      const bought = Math.max(0, Math.floor(finiteNumber(state.roguePrograms?.slotUpgrades)));
+      const costs = config.programs?.slotUpgradeCosts || [];
+      return costs[bought] ? D(costs[bought]).floor() : null;
     }
 
     function getEffectiveCores() {
@@ -42,9 +73,20 @@
       return finiteNumber(Math.max(0, Number(state.bots?.owned || 0) + Number(state.bots?.operator || 0) + programEffectSum("botFlat")));
     }
 
+    function getEffectiveThreads() {
+      return getUpgradeIncome(config.upgradeTables?.ram, state.ramLevel, false);
+    }
+
     function getOperatorTapMultiplier() {
-      if (state.operator?.choice !== "solitary") return 1;
-      return finiteNumber(Math.max(1, getEffectiveCores()));
+      let multiplier = 1;
+      if (state.operator?.choice === "solitary") multiplier *= Math.max(1, getEffectiveCores());
+      if (state.operator?.tier2Choice === "broadcast") multiplier *= Math.max(1, getEffectiveBots());
+      return finiteNumber(multiplier);
+    }
+
+    function getOperatorHashMultiplier() {
+      if (state.operator?.tier2Choice !== "ghost") return 1;
+      return finiteNumber(Math.max(1, getEffectiveThreads()));
     }
 
     function getBotEfficiencyMultiplier() {
@@ -75,7 +117,9 @@
     function getExecutionMultiplier() {
       return finiteNumber(Math.max(1, state.cpuMultiplier) *
         (1 + getEffectiveCores() * config.core.multiplierPerCore) *
-        getBotEfficiencyMultiplier());
+        getBotEfficiencyMultiplier() *
+        getOperatorHashMultiplier() *
+        getRogueProgramMultiplier());
     }
 
     function getRuntimeBreakdown() {
@@ -84,8 +128,10 @@
       const effectiveBots = getEffectiveBots();
       const botEfficiency = getBotEfficiencyMultiplier();
       const operatorTapMultiplier = getOperatorTapMultiplier();
+      const operatorHashMultiplier = getOperatorHashMultiplier();
       const coreMultiplier = 1 + effectiveCores * config.core.multiplierPerCore;
       const executionMultiplier = getExecutionMultiplier();
+      const rogueMultiplier = getRogueProgramMultiplier();
       const tapBase = getUpgradeIncome(config.upgradeTables?.tap, state.tapLevel - 1, true);
       const ramBase = getUpgradeIncome(config.upgradeTables?.ram, state.ramLevel, false);
       const tapResearch = 1 + effectSum("tapMultiplier");
@@ -103,8 +149,10 @@
         effectiveBots,
         botEfficiency,
         operatorTapMultiplier,
+        operatorHashMultiplier,
         coreMultiplier,
         executionMultiplier,
+        rogueMultiplier,
         tapBase,
         ramBase,
         tapResearch,
@@ -241,6 +289,8 @@
         operator: state.operator?.unlocked ? 1 : 0,
         operatorSocial: state.operator?.choice === "social" ? 1 : 0,
         operatorSolitary: state.operator?.choice === "solitary" ? 1 : 0,
+        operatorTier2: state.operator?.tier2Choice ? 1 : 0,
+        roguePrograms: state.roguePrograms?.unlocked ? 1 : 0,
         botsPeak: state.lifetime.botsPeak,
         totalBotsPeak: state.total.botsPeak,
         cores: state.lifetime.coresPeak,
@@ -274,10 +324,17 @@
       effectSum,
       getBackdoorEffects,
       getActiveProgram,
+      getActivePrograms,
+      getRogueProgramLevel,
+      getRogueProgramMultiplier,
+      getRogueProgramCost,
+      getProgramSlotUpgradeCost,
       getEffectiveCores,
       getEffectiveBots,
+      getEffectiveThreads,
       getBotEfficiencyMultiplier,
       getOperatorTapMultiplier,
+      getOperatorHashMultiplier,
       getExecutionMultiplier,
       getRuntimeBreakdown,
       getExecutionsPerTap,

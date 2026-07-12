@@ -29,7 +29,15 @@
   },
   {
     "title": "operator",
-    "text": "The Operator is the voice outside the Matrix, exposed after the current run proves enough work through lifetime hashes. Operator line keeps support on comms and turns cores into bot traffic over time. Redline jack gives you a cleaner direct route, letting cores multiply tap executions. Only one Operator route can be held, and it lasts until EMP."
+    "text": "The Operator is the voice outside the Matrix, exposed after the current run proves enough work through lifetime hashes. Tier 1 offers Operator line or Redline jack. After one is chosen, Tier 2 offers one more single route for 1e16 hashes and unlocks rogue programs. Broadcast tap multiplies tap output by bots. Ghost protocol multiplies all hash production by RAM threads. Operator choices last until EMP."
+  },
+  {
+    "title": "rogue programs",
+    "text": "Rogue programs are hidden processes unlocked by a Tier 2 Operator route. They run beside normal programs, do not consume normal program slots, and apply their own independent multipliers to hash production. Each rogue upgrade starts at 1e16 hashes and raises the exponent by one for that program's next level."
+  },
+  {
+    "title": "program slots",
+    "text": "Normal programs share the running-program limit on the Programs page. The parallel loader on the rogue programs page widens that limit from one to five at 1e25, 1e37, 1e51, and 1e66 hashes. Rogue programs keep running beside that limit."
   },
   {
     "title": "cores",

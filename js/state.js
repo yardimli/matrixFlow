@@ -36,8 +36,16 @@
     function freshPrograms() {
       return {
         unlocked: {},
-        active: null,
+        active: [],
         slots: config.programs?.slots || 1
+      };
+    }
+
+    function freshRoguePrograms() {
+      return {
+        unlocked: false,
+        levels: {},
+        slotUpgrades: 0
       };
     }
 
@@ -63,9 +71,11 @@
         backdoors: {},
         operator: {
           unlocked: false,
-          choice: null
+          choice: null,
+          tier2Choice: null
         },
         programs: freshPrograms(),
+        roguePrograms: freshRoguePrograms(),
         downloads: freshDownloads(),
         crashes: freshCrashes(),
         lifetime: freshStats(),
@@ -78,9 +88,11 @@
       next.unlockedStories ||= {};
       next.backdoors ||= {};
       next.bots = { owned: 0, operator: 0, ...(next.bots || {}) };
-      next.operator = { unlocked: false, choice: null, ...(next.operator || {}) };
+      next.operator = { unlocked: false, choice: null, tier2Choice: null, ...(next.operator || {}) };
       next.programs = { ...freshPrograms(), ...(next.programs || {}) };
       next.programs.unlocked ||= {};
+      next.roguePrograms = { ...freshRoguePrograms(), ...(next.roguePrograms || {}) };
+      next.roguePrograms.levels ||= {};
       next.downloads = { ...freshDownloads(), ...(next.downloads || {}) };
       next.downloads.firstRam = { ...freshDownloads().firstRam, ...(next.downloads.firstRam || {}) };
       next.crashes = { ...freshCrashes(), ...(next.crashes || {}) };
@@ -105,8 +117,19 @@
       next.bots.operator = Math.max(0, finiteNumber(next.bots.operator));
       next.operator.unlocked = Boolean(next.operator.unlocked);
       next.operator.choice = ["social", "solitary"].includes(next.operator.choice) ? next.operator.choice : null;
-      next.programs.slots = Math.max(1, finiteNumber(next.programs.slots, config.programs?.slots || 1));
-      next.programs.active = next.programs.active && next.programs.unlocked[next.programs.active] ? next.programs.active : null;
+      next.operator.tier2Choice = ["broadcast", "ghost"].includes(next.operator.tier2Choice) ? next.operator.tier2Choice : null;
+      next.roguePrograms.unlocked = Boolean(next.roguePrograms.unlocked || next.operator.tier2Choice);
+      next.roguePrograms.slotUpgrades = Math.max(0, Math.min(4, Math.floor(finiteNumber(next.roguePrograms.slotUpgrades))));
+      const expectedSlots = Math.min(5, (config.programs?.slots || 1) + next.roguePrograms.slotUpgrades);
+      next.programs.slots = Math.max(expectedSlots, finiteNumber(next.programs.slots, expectedSlots));
+      next.programs.slots = Math.min(5, next.programs.slots);
+      if (!Array.isArray(next.programs.active)) next.programs.active = next.programs.active ? [next.programs.active] : [];
+      next.programs.active = next.programs.active
+        .filter((id, index, active) => next.programs.unlocked[id] && active.indexOf(id) === index)
+        .slice(0, next.programs.slots);
+      for (const id of Object.keys(next.roguePrograms.levels)) {
+        next.roguePrograms.levels[id] = Math.max(0, Math.floor(finiteNumber(next.roguePrograms.levels[id])));
+      }
       next.downloads.firstRam.bytes = finiteNumber(next.downloads.firstRam.bytes);
       next.downloads.firstRam.started = Boolean(next.downloads.firstRam.started);
       next.downloads.firstRam.complete = Boolean(next.downloads.firstRam.complete);

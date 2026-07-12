@@ -50,6 +50,7 @@
   },
   "programs": {
     "slots": 1,
+    "slotUpgradeCosts": ["1e25", "1e37", "1e51", "1e66"],
     "items": [
       {
         "id": "core_fork",
@@ -110,6 +111,42 @@
         "name": "scheduler overdrive",
         "description": "Let every visible process steal time from the dark scheduler.",
         "effects": { "tapMultiplier": 4, "ramMultiplier": 4, "coreMultiplier": 4 }
+      }
+    ]
+  },
+  "roguePrograms": {
+    "baseCost": "1e16",
+    "costExponentStart": 16,
+    "items": [
+      {
+        "id": "agent_spoofer",
+        "name": "agent spoofer",
+        "description": "Forge agent signatures and route their priority cycles into your hash stream.",
+        "effects": { "hashMultiplier": 0.35 }
+      },
+      {
+        "id": "mirror_worm",
+        "name": "mirror worm",
+        "description": "Duplicate hot execution traces before the Matrix can deallocate them.",
+        "effects": { "hashMultiplier": 0.5 }
+      },
+      {
+        "id": "black_ice_probe",
+        "name": "black-ice probe",
+        "description": "Turn hostile scan traffic into extra proof-of-work noise.",
+        "effects": { "hashMultiplier": 0.7 }
+      },
+      {
+        "id": "oracle_thread",
+        "name": "oracle thread",
+        "description": "Predict short scheduler windows and spend them before they close.",
+        "effects": { "hashMultiplier": 0.95 }
+      },
+      {
+        "id": "redline_phantom",
+        "name": "redline phantom",
+        "description": "Run beside the active stack as a hidden process that sharpens every hash path.",
+        "effects": { "hashMultiplier": 1.25 }
       }
     ]
   },

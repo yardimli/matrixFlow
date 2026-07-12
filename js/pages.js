@@ -4,7 +4,7 @@
   function createPages(context) {
     const { config, state, researchData, storyData, backdoorData, helpData, economy, isDebugMode, getDevClickMultiplier, getShowCalculations } = context;
     const FIRST_RAM_DOWNLOAD_BYTES = 1474560;
-    const WHOLE_EXPONENTIAL = { scientificDecimals: 0 };
+    const WHOLE_EXPONENTIAL = { scientificDecimals: 2 };
 
     function renderMatrixPage() {
       const tapUnlocked = economy.isTapUpgradeUnlocked();
@@ -130,8 +130,8 @@
 
     function renderProgramsPage() {
       const unlockedPrograms = getUnlockedPrograms();
-      const activeProgram = economy.getActiveProgram();
-      const running = activeProgram ? 1 : 0;
+      const activePrograms = economy.getActivePrograms();
+      const running = activePrograms.length;
       const slots = Math.max(1, Number(state.programs?.slots || config.programs?.slots || 1));
       return `
         <section class="programs-page">
@@ -142,7 +142,7 @@
             <div class="programs-bar-fill" style="width: ${Math.min(100, (running / slots) * 100)}%"></div>
           </div>
           <div class="program-list">
-            ${unlockedPrograms.length ? unlockedPrograms.map((program) => renderProgramCard(program, activeProgram, slots)).join("") : `<article class="program-card locked"><strong>no programs</strong><small>Research a program to load it here.</small></article>`}
+            ${unlockedPrograms.length ? unlockedPrograms.map((program) => renderProgramCard(program, activePrograms, slots)).join("") : `<article class="program-card locked"><span class="research-copy"><strong>no programs</strong><small>Research a program to load it here.</small></span></article>`}
           </div>
         </section>
       `;
@@ -152,25 +152,42 @@
       const cost = D("1e10");
       const ready = D(state.lifetime.hashes).gte(cost);
       const selected = state.operator?.choice;
+      const tier2Cost = D("1e16");
+      const tier2Ready = D(state.lifetime.hashes).gte(tier2Cost);
+      const tier2Selected = state.operator?.tier2Choice;
       const coreValue = formatNumber(economy.getEffectiveCores(), WHOLE_EXPONENTIAL);
+      const botValue = formatNumber(economy.getEffectiveBots(), WHOLE_EXPONENTIAL);
+      const threadValue = formatNumber(economy.getEffectiveThreads(), WHOLE_EXPONENTIAL);
       return `
         <section class="operator-page">
-          <div class="operator-status">
-            <strong>operator</strong>
-            <small>${selected ? `${operatorName(selected)} operator line held until EMP` : `${formatNumber(state.lifetime.hashes, WHOLE_EXPONENTIAL)} / ${formatNumber(cost, WHOLE_EXPONENTIAL)} lifetime hashes to contact the Operator`}</small>
-          </div>
           <div class="operator-choice-grid">
             ${renderOperatorCard("social", "operator line", "The Operator stays on comms and loads support processes into the Matrix. Each core brings more bots online.", `(+${coreValue})`, ready, selected)}
             ${renderOperatorCard("solitary", "redline jack", "The Operator locks you into a clean jack-in route. Each core sharpens direct taps into stronger executions.", `(x${coreValue})`, ready, selected)}
+            ${renderOperatorHint(selected, tier2Selected, tier2Cost)}
+            ${selected ? renderOperatorTier2Card("broadcast", "broadcast tap", "Open a noisy side channel through the Operator. Rogue programs become available beside the normal stack.", `multiply tap output by bots (x${botValue})`, tier2Ready, tier2Selected, tier2Cost) : ""}
+            ${selected ? renderOperatorTier2Card("ghost", "ghost protocol", "Cut a silent route through the redline. Rogue programs become available beside the normal stack.", `multiply all hash rate by threads (x${threadValue})`, tier2Ready, tier2Selected, tier2Cost) : ""}
           </div>
         </section>
       `;
+    }
+
+    function renderOperatorHint(selected, tier2Selected, tier2Cost) {
+      if (!selected || tier2Selected) return "";
+      return `<p class="operator-hint">${formatNumber(tier2Cost, WHOLE_EXPONENTIAL)} lifetime hashes</p>`;
     }
 
     function operatorName(id) {
       const names = {
         social: "operator line",
         solitary: "redline jack"
+      };
+      return names[id] || id;
+    }
+
+    function operatorTier2Name(id) {
+      const names = {
+        broadcast: "broadcast tap",
+        ghost: "ghost protocol"
       };
       return names[id] || id;
     }
@@ -187,13 +204,70 @@
       `;
     }
 
-    function renderProgramCard(program, activeProgram, slots) {
-      const isActive = activeProgram?.id === program.id;
-      const blocked = activeProgram && !isActive && slots <= 1;
+    function renderOperatorTier2Card(id, name, description, effect, ready, selected, cost) {
+      const isSelected = selected === id;
+      const locked = Boolean(selected) && !isSelected;
+      const disabled = !ready || Boolean(selected);
+      return `
+        <button class="program-card operator-card ${isSelected ? "program-running" : ""} ${locked || !ready ? "program-blocked" : ""}" type="button" data-operator-tier2-choice="${id}" ${disabled ? "disabled" : ""}>
+          <strong>${name}</strong>
+          <small>${description} <span class="operator-effect">${effect}</span></small>
+          <span>cost ${formatNumber(cost, WHOLE_EXPONENTIAL)} lifetime hashes</span>
+        </button>
+      `;
+    }
+
+    function renderProgramCard(program, activePrograms, slots) {
+      const isActive = activePrograms.some((activeProgram) => activeProgram.id === program.id);
+      const blocked = activePrograms.length >= slots && !isActive;
       return `
         <button class="program-card ${isActive ? "program-running" : ""} ${blocked ? "program-blocked" : ""}" type="button" data-program-id="${program.id}" ${blocked ? "disabled" : ""}>
-          <strong>${program.name}</strong>
-          <small>${program.description}</small>
+          <span class="research-copy"><strong>${program.name}</strong><small>${program.description}</small></span>
+        </button>
+      `;
+    }
+
+    function renderRogueProgramsPage() {
+      const programs = config.roguePrograms?.items || [];
+      const slots = Math.max(1, Number(state.programs?.slots || config.programs?.slots || 1));
+      return `
+        <section class="programs-page rogue-programs-page">
+          <div class="program-list rogue-program-grid">
+            ${programs.map(renderRogueProgramCard).join("")}
+            ${renderProgramSlotUpgradeCard(slots)}
+          </div>
+        </section>
+      `;
+    }
+
+    function renderRogueProgramCard(program) {
+      const level = economy.getRogueProgramLevel(program.id);
+      const cost = economy.getRogueProgramCost(program);
+      const perLevel = Number(program.effects?.hashMultiplier || 0);
+      const canAfford = D(state.hashes).gte(cost);
+      return `
+        <button class="program-card ${level > 0 ? "program-running" : ""} ${canAfford ? "can-afford" : ""}" type="button" data-rogue-program-id="${program.id}" ${canAfford ? "" : "disabled"}>
+          <span class="research-copy"><strong>${program.name}</strong><small>${program.description}</small></span>
+          <span class="research-card-footer"><small>level ${level} / x${formatMultiplier(Math.pow(1 + perLevel, level || 1))} ${level > 0 ? "total" : "next"}</small><small>${formatNumber(cost, WHOLE_EXPONENTIAL)}</small></span>
+        </button>
+      `;
+    }
+
+    function renderProgramSlotUpgradeCard(slots) {
+      const cost = economy.getProgramSlotUpgradeCost();
+      const canAfford = cost && D(state.hashes).gte(cost);
+      if (!cost) {
+        return `
+          <article class="program-card program-running">
+            <span class="research-copy"><strong>parallel loader</strong><small>Normal program stack is fully widened.</small></span>
+            <span class="research-card-footer"><small>${slots} / 5 running programs</small><small>max</small></span>
+          </article>
+        `;
+      }
+      return `
+        <button class="program-card ${canAfford ? "can-afford" : ""}" id="program-slot-upgrade" type="button" ${canAfford ? "" : "disabled"}>
+          <span class="research-copy"><strong>parallel loader</strong><small>Increase the running program limit on the Programs page. Rogue programs keep running beside it.</small></span>
+          <span class="research-card-footer"><small>${slots} / 5 running programs</small><small>${formatNumber(cost, WHOLE_EXPONENTIAL)}</small></span>
         </button>
       `;
     }
@@ -232,8 +306,8 @@
             calculations
           </button>
           <div class="stat-calculations ${showCalculations ? "" : "hidden"}">
-            ${calcRow("tap", `${formatNumber(stats.tapBase, WHOLE_EXPONENTIAL)} x ${formatMultiplier(stats.cpuMultiplier)}(cpu) x ${formatNumber(stats.effectiveCores, WHOLE_EXPONENTIAL)}(core) (${formatCoreMultiplierFormula(stats.coreMultiplier)}) x ${formatMultiplier(stats.botEfficiency)}(bot efficiency) x ${formatMultiplier(stats.tapResearch)}(tap research/programs) x ${formatMultiplier(stats.operatorTapMultiplier)}(operator) = ${formatNumber(stats.executionsPerTap, WHOLE_EXPONENTIAL)} executions / tap`, `+${formatNumber(stats.executionsPerTap, WHOLE_EXPONENTIAL)} / tap`)}
-            ${calcRow("threads", `${formatRamAmount(state.ramLevel)} holds ${formatThreadCount(stats.ramBase)} x ${formatMultiplier(stats.cpuMultiplier)}(cpu) x ${formatNumber(stats.effectiveCores, WHOLE_EXPONENTIAL)}(core) (${formatCoreMultiplierFormula(stats.coreMultiplier)}) x ${formatMultiplier(stats.botEfficiency)}(bot efficiency) x ${formatMultiplier(stats.ramResearch)}(RAM research/programs) = ${formatNumber(stats.ramRate, WHOLE_EXPONENTIAL)} executions / second`, `+${formatNumber(stats.ramGain8, WHOLE_EXPONENTIAL)} / 8s`)}
+            ${calcRow("tap", `${formatNumber(stats.tapBase, WHOLE_EXPONENTIAL)} x ${formatMultiplier(stats.cpuMultiplier)}(cpu) x ${formatNumber(stats.effectiveCores, WHOLE_EXPONENTIAL)}(core) (${formatCoreMultiplierFormula(stats.coreMultiplier)}) x ${formatMultiplier(stats.botEfficiency)}(bot efficiency) x ${formatMultiplier(stats.operatorHashMultiplier)}(operator hash) x ${formatMultiplier(stats.rogueMultiplier)}(rogue) x ${formatMultiplier(stats.tapResearch)}(tap research/programs) x ${formatMultiplier(stats.operatorTapMultiplier)}(operator tap) = ${formatNumber(stats.executionsPerTap, WHOLE_EXPONENTIAL)} executions / tap`, `+${formatNumber(stats.executionsPerTap, WHOLE_EXPONENTIAL)} / tap`)}
+            ${calcRow("threads", `${formatRamAmount(state.ramLevel)} holds ${formatThreadCount(stats.ramBase)} x ${formatMultiplier(stats.cpuMultiplier)}(cpu) x ${formatNumber(stats.effectiveCores, WHOLE_EXPONENTIAL)}(core) (${formatCoreMultiplierFormula(stats.coreMultiplier)}) x ${formatMultiplier(stats.botEfficiency)}(bot efficiency) x ${formatMultiplier(stats.operatorHashMultiplier)}(operator hash) x ${formatMultiplier(stats.rogueMultiplier)}(rogue) x ${formatMultiplier(stats.ramResearch)}(RAM research/programs) = ${formatNumber(stats.ramRate, WHOLE_EXPONENTIAL)} executions / second`, `+${formatNumber(stats.ramGain8, WHOLE_EXPONENTIAL)} / 8s`)}
             ${calcRow("cores", `target ${formatNumber(stats.coreTarget, WHOLE_EXPONENTIAL)} from executions, tap level, RAM level, core research ${formatNumber(stats.coreResearch, WHOLE_EXPONENTIAL)}, bots ${formatNumber(stats.effectiveBots, WHOLE_EXPONENTIAL)} (${formatMultiplier(stats.botEfficiency)}x)`, `+${formatNumber(stats.coreGain8, WHOLE_EXPONENTIAL)} / 8s`)}
             ${calcRow("source", `productive mass from executions, cores, RAM / difficulty ${formatNumber(stats.sourceDifficulty, WHOLE_EXPONENTIAL)} x source research ${formatNumber(stats.sourceResearch, WHOLE_EXPONENTIAL)} x bot efficiency ${formatMultiplier(stats.botEfficiency)}`, `+${formatNumber(stats.sourceGain8, WHOLE_EXPONENTIAL)} / 8s`)}
           </div>
@@ -310,7 +384,7 @@
     }
 
     function formatMultiplier(value) {
-      if (value < 1000) return value.toFixed(2).replace(/\.?0+$/, "");
+      if (value < 1000) return value.toFixed(2);
       return formatNumber(value, WHOLE_EXPONENTIAL);
     }
 
@@ -341,16 +415,20 @@
       if (safeLevel <= 0) return "0 KB";
       const baseKilobytes = Number(config.ramDisplay?.baseKilobytes || 64);
       const growth = Number(config.ramDisplay?.growth || 2);
-      const kilobytes = baseKilobytes * Math.pow(growth, safeLevel - 1);
-      const units = ["KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
-      let scaled = kilobytes;
+      const bytes = D(baseKilobytes).times(1000).times(D(growth).pow(safeLevel - 1));
+      const kilobytes = bytes.div(1000);
+      const terabyteBytes = D("1e12");
+      if (bytes.gte(terabyteBytes.times(100))) {
+        return formatNumber(bytes, { scientificAt: 0, scientificDecimals: 2 });
+      }
+      const units = ["KB", "MB", "GB", "TB"];
+      let scaled = kilobytes.toNumber();
       let unitIndex = 0;
-      while (scaled >= 1024 && unitIndex < units.length - 1) {
-        scaled /= 1024;
+      while (scaled >= 1000 && unitIndex < units.length - 1) {
+        scaled /= 1000;
         unitIndex += 1;
       }
-      const shown = scaled >= 100 || Number.isInteger(scaled) ? Math.floor(scaled) : scaled.toFixed(1);
-      return `${shown}${units[unitIndex]}`;
+      return `${scaled.toFixed(2)}${units[unitIndex]}`;
     }
 
     function backdoorEffectText(backdoor) {
@@ -369,6 +447,7 @@
           if (key === "unlockProgram") return programName(value);
           if (key === "coreFlat") return `cores +${formatNumber(value, WHOLE_EXPONENTIAL)}`;
           if (key === "botFlat") return `bots +${formatNumber(value, WHOLE_EXPONENTIAL)}`;
+          if (key === "hashMultiplier") return `hash rate +${Math.round(value * 100)}%`;
           return `${effectLabel(key)} ${value >= 0 ? "+" : ""}${Math.round(value * 100)}%`;
         })
         .join(", ");
@@ -413,6 +492,7 @@
       matrix: renderMatrixPage,
       research: renderResearchPage,
       programs: renderProgramsPage,
+      roguePrograms: renderRogueProgramsPage,
       operator: renderOperatorPage,
       executions: renderExecutionsPage,
       story: renderStoryPage,

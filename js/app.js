@@ -440,10 +440,11 @@
 
   function toggleProgram(id) {
     if (!state.programs?.unlocked?.[id]) return;
-    if (state.programs.active === id) {
-      state.programs.active = null;
-    } else if (!state.programs.active) {
-      state.programs.active = id;
+    const active = Array.isArray(state.programs.active) ? state.programs.active : state.programs.active ? [state.programs.active] : [];
+    if (active.includes(id)) {
+      state.programs.active = active.filter((activeId) => activeId !== id);
+    } else if (active.length < state.programs.slots) {
+      state.programs.active = [...active, id];
     }
     pageDirty = true;
     render();
@@ -454,6 +455,40 @@
     if (!["social", "solitary"].includes(choice)) return;
     if (D(state.lifetime.hashes).lt(getOperatorCost())) return;
     state.operator.choice = choice;
+    pageDirty = true;
+    render();
+  }
+
+  function chooseOperatorTier2(choice) {
+    if (!state.operator.unlocked || !state.operator.choice || state.operator.tier2Choice) return;
+    if (!["broadcast", "ghost"].includes(choice)) return;
+    const cost = getOperatorTier2Cost();
+    if (D(state.lifetime.hashes).lt(cost)) return;
+    state.operator.tier2Choice = choice;
+    state.roguePrograms.unlocked = true;
+    pageDirty = true;
+    render();
+  }
+
+  function upgradeRogueProgram(id) {
+    if (!state.roguePrograms?.unlocked) return;
+    const program = (config.roguePrograms?.items || []).find((entry) => entry.id === id);
+    if (!program) return;
+    const cost = economy.getRogueProgramCost(program);
+    if (D(state.hashes).lt(cost)) return;
+    state.hashes = D(state.hashes).minus(cost).toString();
+    state.roguePrograms.levels[id] = (state.roguePrograms.levels[id] || 0) + 1;
+    pageDirty = true;
+    render();
+  }
+
+  function upgradeProgramSlots() {
+    if (!state.roguePrograms?.unlocked) return;
+    const cost = economy.getProgramSlotUpgradeCost();
+    if (!cost || D(state.hashes).lt(cost)) return;
+    state.hashes = D(state.hashes).minus(cost).toString();
+    state.roguePrograms.slotUpgrades += 1;
+    state.programs.slots = Math.min(5, (config.programs?.slots || 1) + state.roguePrograms.slotUpgrades);
     pageDirty = true;
     render();
   }
@@ -473,12 +508,18 @@
     state.bots.operator = 0;
     state.operator = {
       unlocked: false,
-      choice: null
+      choice: null,
+      tier2Choice: null
     };
     state.programs = {
       unlocked: {},
-      active: null,
+      active: [],
       slots: config.programs?.slots || 1
+    };
+    state.roguePrograms = {
+      unlocked: false,
+      levels: {},
+      slotUpgrades: 0
     };
     resetFirstRamDownload();
     resetCrashes();
@@ -603,8 +644,9 @@
   function render(updatePage = true) {
     if (activePage === "executions" && !isExecutionsPageUnlocked()) activePage = config.ui.defaultPage;
     if (activePage === "programs" && !isProgramsPageUnlocked()) activePage = config.ui.defaultPage;
+    if (activePage === "roguePrograms" && !isRogueProgramsPageUnlocked()) activePage = config.ui.defaultPage;
     if (activePage === "operator" && !isOperatorPageUnlocked()) activePage = config.ui.defaultPage;
-    els.hashes.textContent = formatNumber(state.hashes, { shortenAt: 100000, decimalsFromUnit: "M" });
+    els.hashes.textContent = formatNumber(state.hashes, { shortenAt: 100000 });
     const effectiveBots = economy.getEffectiveBots();
     els.botsMetric.hidden = effectiveBots <= 0;
     els.bots.textContent = formatNumber(effectiveBots);
@@ -658,9 +700,17 @@
     document.querySelectorAll("[data-program-id]").forEach((button) => {
       button.addEventListener("click", () => toggleProgram(button.dataset.programId));
     });
+    bindProgramPageScroll();
     document.querySelectorAll("[data-operator-choice]").forEach((button) => {
       button.addEventListener("click", () => chooseOperator(button.dataset.operatorChoice));
     });
+    document.querySelectorAll("[data-operator-tier2-choice]").forEach((button) => {
+      button.addEventListener("click", () => chooseOperatorTier2(button.dataset.operatorTier2Choice));
+    });
+    document.querySelectorAll("[data-rogue-program-id]").forEach((button) => {
+      button.addEventListener("click", () => upgradeRogueProgram(button.dataset.rogueProgramId));
+    });
+    document.getElementById("program-slot-upgrade")?.addEventListener("click", upgradeProgramSlots);
     document.getElementById("stat-calculations-toggle")?.addEventListener("click", () => {
       showCalculations = !showCalculations;
       pageDirty = true;
@@ -706,6 +756,18 @@
     }
   }
 
+  function bindProgramPageScroll() {
+    const programPage = document.querySelector(".programs-page");
+    const programList = programPage?.querySelector(".program-list");
+    if (!programPage || !programList) return;
+    programPage.addEventListener("wheel", (event) => {
+      if (event.target instanceof Element && event.target.closest(".program-list")) return;
+      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+      programList.scrollTop += event.deltaY;
+      event.preventDefault();
+    }, { passive: false });
+  }
+
   function updateMenuAvailability() {
     els.menuButtons.forEach((button) => {
       if (button.dataset.page === "executions") {
@@ -713,6 +775,9 @@
       }
       if (button.dataset.page === "programs") {
         button.hidden = !isProgramsPageUnlocked();
+      }
+      if (button.dataset.page === "roguePrograms") {
+        button.hidden = !isRogueProgramsPageUnlocked();
       }
       if (button.dataset.page === "operator") {
         button.hidden = !isOperatorPageUnlocked();
@@ -728,6 +793,10 @@
     return Object.keys(state.programs?.unlocked || {}).length > 0;
   }
 
+  function isRogueProgramsPageUnlocked() {
+    return Boolean(state.roguePrograms?.unlocked || state.operator?.tier2Choice);
+  }
+
   function isOperatorPageUnlocked() {
     return Boolean(state.operator?.unlocked);
   }
@@ -740,9 +809,14 @@
     return D("1e10");
   }
 
+  function getOperatorTier2Cost() {
+    return D("1e16");
+  }
+
   function getPageName(page) {
     const labels = {
-      programs: "program"
+      programs: "program",
+      roguePrograms: "rogue programs"
     };
     return labels[page] || page;
   }
@@ -802,16 +876,20 @@
     if (safeLevel <= 0) return "0 KB";
     const baseKilobytes = Number(config.ramDisplay?.baseKilobytes || 64);
     const growth = Number(config.ramDisplay?.growth || 2);
-    const kilobytes = baseKilobytes * Math.pow(growth, safeLevel - 1);
-    const units = ["KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
-    let scaled = kilobytes;
+    const bytes = D(baseKilobytes).times(1000).times(D(growth).pow(safeLevel - 1));
+    const kilobytes = bytes.div(1000);
+    const terabyteBytes = D("1e12");
+    if (bytes.gte(terabyteBytes.times(100))) {
+      return formatNumber(bytes, { scientificAt: 0, scientificDecimals: 2 });
+    }
+    const units = ["KB", "MB", "GB", "TB"];
+    let scaled = kilobytes.toNumber();
     let unitIndex = 0;
-    while (scaled >= 1024 && unitIndex < units.length - 1) {
-      scaled /= 1024;
+    while (scaled >= 1000 && unitIndex < units.length - 1) {
+      scaled /= 1000;
       unitIndex += 1;
     }
-    const shown = scaled >= 100 || Number.isInteger(scaled) ? Math.floor(scaled) : scaled.toFixed(1);
-    return `${shown}${units[unitIndex]}`;
+    return `${scaled.toFixed(2)}${units[unitIndex]}`;
   }
 
   function formatDownloadAmount(bytes) {
@@ -873,6 +951,7 @@
   }
 
   function isPulseTarget(event, x, y) {
+    if (activePage !== "matrix") return false;
     const target = event.target;
     if (!(target instanceof Element)) return false;
     if (isBlockedPulseElement(target)) return false;

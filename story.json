@@ -55,6 +55,11 @@
     "condition": { "stat": "operator", "gte": 1 }
   },
   {
+    "id": "rogue_programs_online",
+    "text": "Rogue program channel opened. The selected Operator route now has enough authority to run hidden processes beside the normal program stack.",
+    "condition": { "stat": "roguePrograms", "gte": 1 }
+  },
+  {
     "id": "first_reboot",
     "text": "EMP complete. Run-local hashes, upgrades, RAM, and cores were reset. A nanosecond after the pulse, Source Code Extraction persisted into the next run's CPU multiplier.",
     "condition": { "stat": "reboots", "gte": 1 }

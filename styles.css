@@ -139,6 +139,7 @@ button:not(:disabled).can-afford.button-pressed,
   overscroll-behavior: contain;
   padding: 4px 0 6px;
   scrollbar-color: var(--cyan) rgba(255, 255, 255, 0.12);
+  touch-action: pan-y;
 }
 
 .research-page {
@@ -341,9 +342,9 @@ button:not(:disabled).can-afford.button-pressed,
   text-align: center;
 }
 
-.research-panel .card {
+.research-panel .card,
+.program-card {
   min-height: 120px;
-  max-height: 150px;
   display: grid;
   grid-template-rows: 1fr auto;
   align-items: stretch;
@@ -353,17 +354,20 @@ button:not(:disabled).can-afford.button-pressed,
   border-width: 3px;
 }
 
-.research-panel .card > * {
+.research-panel .card > *,
+.program-card > * {
   width: 100%;
   min-width: 0;
   justify-self: stretch;
 }
 
-.research-panel .card strong {
+.research-panel .card strong,
+.program-card strong {
   font-size: clamp(1rem, 3.4vw, 1.45rem);
 }
 
-.research-panel .card small {
+.research-panel .card small,
+.program-card small {
   font-size: clamp(0.85rem, 2.8vw, 1.1rem);
 }
 
@@ -376,16 +380,19 @@ button:not(:disabled).can-afford.button-pressed,
 }
 
 .programs-page {
-  min-height: 100%;
+  height: 100%;
+  min-height: 0;
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
   align-content: start;
   gap: 12px;
-  padding: clamp(14px, 4vh, 44px) 0 0;
+  overflow: hidden;
+  padding: 0px;
+  touch-action: pan-y;
 }
 
 .programs-status {
-  min-height: clamp(46px, 10vh, 86px);
+  min-height: clamp(23px, 5vh, 43px);
   display: grid;
   place-items: center;
   color: var(--text);
@@ -403,22 +410,12 @@ button:not(:disabled).can-afford.button-pressed,
   padding: clamp(14px, 4vh, 44px) 0 0;
 }
 
-.operator-status {
-  display: grid;
-  gap: 8px;
-  justify-items: center;
-  text-align: center;
-}
-
-.operator-status strong {
-  color: var(--cyan);
-  font-size: clamp(1.2rem, 5vw, 2.45rem);
-  font-weight: 400;
-}
-
-.operator-status small {
+.operator-hint {
+  grid-column: 1 / -1;
+  margin: 0;
   color: var(--muted);
   font-size: clamp(0.9rem, 3vw, 1.2rem);
+  text-align: center;
 }
 
 .operator-choice-grid {
@@ -453,23 +450,35 @@ button:not(:disabled).can-afford.button-pressed,
 
 .program-list {
   min-height: 0;
+  height: 100%;
   display: grid;
   align-content: start;
   gap: 10px;
   overflow-y: auto;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   padding-right: 2px;
   scrollbar-color: var(--cyan) rgba(255, 255, 255, 0.12);
+  touch-action: pan-y;
+}
+
+.rogue-programs-page {
+  grid-template-rows: minmax(0, 1fr);
+  padding-top: 0;
+}
+
+.rogue-program-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.rogue-program-grid .program-card {
+  min-height: 120px;
 }
 
 .program-card {
   width: 100%;
-  min-height: clamp(132px, 18vh, 170px);
-  display: grid;
-  justify-items: center;
-  align-content: center;
   gap: 6px;
-  padding: 8px 6px;
   border: 3px solid var(--border);
   border-radius: 6px;
   background: var(--panel-strong);
@@ -477,22 +486,26 @@ button:not(:disabled).can-afford.button-pressed,
   text-align: center;
   cursor: pointer;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+  touch-action: pan-y;
 }
 
 .program-card strong {
-  font-size: clamp(1.12rem, 4vw, 1.65rem);
   font-weight: 400;
 }
 
-.program-card small,
-.program-card span {
-  font-size: clamp(0.9rem, 3vw, 1.2rem);
+.program-card small {
   line-height: 1.35;
 }
 
-.program-card span {
+.program-card .research-card-footer small:first-child {
   color: var(--cyan);
   text-shadow: var(--shadow-cyan);
+}
+
+.program-blocked .research-card-footer small:first-child,
+.locked .research-card-footer small:first-child {
+  color: inherit;
+  text-shadow: none;
 }
 
 .operator-card {
@@ -1167,11 +1180,7 @@ button:disabled,
     font-size: clamp(0.84rem, 3.5vw, 1.715rem);
   }
 
-  .operator-status strong {
-    font-size: clamp(0.84rem, 3.5vw, 1.715rem);
-  }
-
-  .operator-status small {
+  .operator-hint {
     font-size: clamp(0.63rem, 2.1vw, 0.84rem);
   }
 
@@ -1179,8 +1188,7 @@ button:disabled,
     font-size: clamp(0.784rem, 2.8vw, 1.155rem);
   }
 
-  .program-card small,
-  .program-card span {
+  .program-card small {
     font-size: clamp(0.63rem, 2.1vw, 0.84rem);
   }
 
