@@ -2,8 +2,7 @@
   const { D, formatNumber, formatTime } = window.MF.utils;
 
   function createPages(context) {
-    const { config, state, researchData, storyData, backdoorData, helpData, economy, isDebugMode, getDevClickMultiplier, getShowCalculations } = context;
-    const FIRST_RAM_DOWNLOAD_BYTES = 1474560;
+    const { config, state, programDownloadData, researchData, storyData, backdoorData, helpData, economy, isDebugMode, getDevClickMultiplier, getShowCalculations } = context;
     const WHOLE_EXPONENTIAL = { scientificDecimals: 2 };
 
     function renderMatrixPage() {
@@ -26,12 +25,14 @@
     }
 
     function renderFirstRamDownload() {
-      const download = state.downloads?.firstRam;
+      const item = getProgramDownloadItem("kung_fu");
+      const download = getProgramDownload("kung_fu");
+      if (!item) return "";
       if (!download?.started || download.complete) return "";
-      const progress = getDownloadProgress(download);
+      const progress = getDownloadProgress(item);
       return `
         <div class="download-panel">
-          <div class="download-label" id="download-label">${getDownloadLabel(download)}</div>
+          <div class="download-label" id="download-label" data-download-label-id="${item.id}">${getDownloadLabel(item)}</div>
           <div class="download-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.floor(progress)}">
             <div class="download-bar-fill" id="download-bar-fill" style="width: ${progress}%"></div>
           </div>
@@ -40,18 +41,41 @@
       `;
     }
 
-    function getDownloadProgress(download) {
-      return Math.max(0, Math.min(100, (download.bytes / FIRST_RAM_DOWNLOAD_BYTES) * 100));
+    function getDownloadProgress(item) {
+      const download = getProgramDownload(item.id);
+      return Math.max(0, Math.min(100, D(download.bytes || 0).div(item.downloadBytes).times(100).toNumber()));
     }
 
-    function getDownloadLabel(download) {
-      return "kung_fu.exe";
+    function getDownloadLabel(program) {
+      const download = getProgramDownload(program.id);
+      if (shouldShowDownloadBytes()) return `${formatDownloadAmount(download.bytes || 0)} downloaded`;
+      return program.name;
+    }
+
+    function shouldShowDownloadBytes() {
+      return Math.floor((state.lifetime?.time || 0) / 2) % 2 === 1;
     }
 
     function formatDownloadAmount(bytes) {
-      if (bytes < 100000) return `${Math.floor(bytes)} bytes`;
-      if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-      return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+      const amount = D(bytes);
+      if (amount.lt(100000)) return `${Math.floor(amount.toNumber())} bytes`;
+      if (amount.lt(1024 * 1024)) return `${amount.div(1024).toNumber().toFixed(1)} KB`;
+      if (amount.lt("1e12")) return `${amount.div(1024 * 1024).toNumber().toFixed(2)} MB`;
+      return `${formatNumber(amount, { scientificAt: 0, scientificDecimals: 2 })} bytes`;
+    }
+
+    function getProgramDownload(id) {
+      return state.downloads?.programs?.[id] || { started: false, complete: false, bytes: 0 };
+    }
+
+    function getProgramDownloadItem(id) {
+      return programDownloadData.find((program) => program.id === id);
+    }
+
+    function getProgramDownloadRequirementText(program) {
+      const hashText = `${formatNumber(program.hashRequirement || 0, WHOLE_EXPONENTIAL)} hashes`;
+      if (!program.executionRequirement) return hashText;
+      return `${hashText} + ${formatNumber(program.executionRequirement, WHOLE_EXPONENTIAL)} executions`;
     }
 
     function renderUpgrade(id, unlocked, canAfford, maxBuyUnlocked, title, effect, level, cost) {
@@ -129,7 +153,6 @@
     }
 
     function renderProgramsPage() {
-      const unlockedPrograms = getUnlockedPrograms();
       const activePrograms = economy.getActivePrograms();
       const running = activePrograms.length;
       const slots = Math.max(1, Number(state.programs?.slots || config.programs?.slots || 1));
@@ -142,9 +165,23 @@
             <div class="programs-bar-fill" style="width: ${Math.min(100, (running / slots) * 100)}%"></div>
           </div>
           <div class="program-list pr-half">
-            ${unlockedPrograms.length ? unlockedPrograms.map((program) => renderProgramCard(program, activePrograms, slots)).join("") : `<article class="program-card p-1 locked"><span class="research-copy"><strong>no programs</strong><small>Research a program to load it here.</small></span></article>`}
+            ${programDownloadData.map((program) => renderProgramDownloadCard(program, activePrograms, slots)).join("")}
           </div>
         </section>
+      `;
+    }
+
+    function renderProgramDownloadCard(program, activePrograms, slots) {
+      const download = getProgramDownload(program.id);
+      if (download.complete) return renderProgramCard(program, activePrograms, slots);
+      const started = Boolean(download.started);
+      const progress = getDownloadProgress(program);
+      const requirement = getProgramDownloadRequirementText(program);
+      return `
+        <article class="program-card p-1 locked">
+          <span class="research-copy"><strong ${started ? `data-download-label-id="${program.id}"` : ""}>${started ? getDownloadLabel(program) : program.name}</strong><small>${program.description}</small></span>
+          <span class="research-card-footer"><small>${started ? `${Math.floor(progress)}% downloaded` : requirement}</small><small>${formatDownloadAmount(program.downloadBytes)}</small></span>
+        </article>
       `;
     }
 
@@ -372,7 +409,7 @@
     }
 
     function getUnlockedPrograms() {
-      return (config.programs?.items || []).filter((program) => state.programs?.unlocked?.[program.id]);
+      return programDownloadData.filter((program) => state.programs?.unlocked?.[program.id]);
     }
 
     function statRow(label, lifetime, total) {
@@ -444,17 +481,12 @@
       return Object.entries(effects)
         .map(([key, value]) => {
           if (key === "maxBuy") return "max buy unlocked";
-          if (key === "unlockProgram") return programName(value);
           if (key === "coreFlat") return `cores +${formatNumber(value, WHOLE_EXPONENTIAL)}`;
           if (key === "botFlat") return `bots +${formatNumber(value, WHOLE_EXPONENTIAL)}`;
           if (key === "hashMultiplier") return `hash rate +${Math.round(value * 100)}%`;
           return `${effectLabel(key)} ${value >= 0 ? "+" : ""}${Math.round(value * 100)}%`;
         })
         .join(", ");
-    }
-
-    function programName(id) {
-      return (config.programs?.items || []).find((program) => program.id === id)?.name || id;
     }
 
     function effectLabel(key) {

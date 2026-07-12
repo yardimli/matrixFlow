@@ -98,25 +98,11 @@
     "effects": { "maxBuy": 1 }
   },
   {
-    "id": "program_core_fork",
-    "name": "core fork",
-    "description": "Unlock a runnable program that lends the machine 32 extra cores while active.",
-    "cost": 10000000,
-    "effects": { "unlockProgram": "core_fork" }
-  },
-  {
     "id": "branch_predictor",
     "name": "branch predictor",
     "description": "The system guesses the future and bills you for accuracy.",
     "cost": "1e8",
     "effects": { "tapMultiplier": 0.16 }
-  },
-  {
-    "id": "program_bot_swarm",
-    "name": "bot swarm",
-    "description": "Unlock a runnable program that starts 256 temporary bots while active.",
-    "cost": 25000000,
-    "effects": { "unlockProgram": "bot_swarm" }
   },
   {
     "id": "bus_width",
@@ -126,25 +112,11 @@
     "effects": { "ramMultiplier": 0.18 }
   },
   {
-    "id": "program_thread_daemon",
-    "name": "thread daemon",
-    "description": "Unlock a runnable program that improves RAM background tasks.",
-    "cost": "1e11",
-    "effects": { "unlockProgram": "thread_daemon" }
-  },
-  {
     "id": "kernel_whisper",
     "name": "kernel prefetch",
     "description": "Preload kernel paths so CPU multiplier work resolves before the command queue stalls.",
     "cost": "1e12",
     "effects": { "cpuMultiplier": 0.07 }
-  },
-  {
-    "id": "program_core_resolver",
-    "name": "core resolver",
-    "description": "Unlock a runnable program that pushes core growth higher.",
-    "cost": "1e13",
-    "effects": { "unlockProgram": "core_resolver" }
   },
   {
     "id": "compiled_memory",
@@ -154,25 +126,11 @@
     "effects": { "backdoorMultiplier": 0.06 }
   },
   {
-    "id": "program_io_broker",
-    "name": "I/O broker",
-    "description": "Unlock a runnable program that boosts taps and RAM threads together.",
-    "cost": "1e15",
-    "effects": { "unlockProgram": "io_broker" }
-  },
-  {
     "id": "vector_tap",
     "name": "vector tap",
     "description": "One touch arrives as many instructions.",
     "cost": "1e16",
     "effects": { "tapMultiplier": 0.22 }
-  },
-  {
-    "id": "program_wide_fork",
-    "name": "wide fork",
-    "description": "Unlock a runnable program that lends the machine 96 extra cores while active.",
-    "cost": "1e17",
-    "effects": { "unlockProgram": "wide_fork" }
   },
   {
     "id": "autonomous_ram",
@@ -182,25 +140,11 @@
     "effects": { "ramMultiplier": 0.26 }
   },
   {
-    "id": "program_thread_swarm",
-    "name": "thread swarm",
-    "description": "Unlock a runnable program that massively improves background threads.",
-    "cost": "1e19",
-    "effects": { "unlockProgram": "thread_swarm" }
-  },
-  {
     "id": "core_lattice",
     "name": "core lattice",
     "description": "Cores stop standing alone and begin to imply one another.",
     "cost": "1e20",
     "effects": { "coreMultiplier": 0.24 }
-  },
-  {
-    "id": "program_tap_jit",
-    "name": "tap JIT",
-    "description": "Unlock a runnable program that turns taps into a hot compiled path.",
-    "cost": "1e21",
-    "effects": { "unlockProgram": "tap_jit" }
   },
   {
     "id": "dead_code_harvest",
@@ -210,25 +154,11 @@
     "effects": { "sourceMultiplier": 0.26 }
   },
   {
-    "id": "program_core_kernel",
-    "name": "core kernel",
-    "description": "Unlock a runnable program that strongly favors core growth.",
-    "cost": "1e23",
-    "effects": { "unlockProgram": "core_kernel" }
-  },
-  {
     "id": "scheduler_mask",
     "name": "scheduler mask",
     "description": "Time is not saved. It is hidden from the parts that would spend it.",
     "cost": "1e24",
     "effects": { "cpuMultiplier": 0.1, "ramMultiplier": 0.1 }
-  },
-  {
-    "id": "program_scheduler_overdrive",
-    "name": "scheduler overdrive",
-    "description": "Unlock a runnable program that overdrives taps, threads, and core growth.",
-    "cost": "1e25",
-    "effects": { "unlockProgram": "scheduler_overdrive" }
   },
   {
     "id": "persistent_shadow",

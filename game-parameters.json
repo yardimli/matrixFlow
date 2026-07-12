@@ -51,68 +51,7 @@
   "programs": {
     "slots": 1,
     "slotUpgradeCosts": ["1e25", "1e37", "1e51", "1e66"],
-    "items": [
-      {
-        "id": "core_fork",
-        "name": "core fork",
-        "description": "Spin up a temporary execution lane and lend the machine 32 extra cores.",
-        "effects": { "coreFlat": 32 }
-      },
-      {
-        "id": "bot_swarm",
-        "name": "bot swarm",
-        "description": "Start 256 temporary bots that raise every production calculation while the program is running.",
-        "effects": { "botFlat": 256 }
-      },
-      {
-        "id": "thread_daemon",
-        "name": "thread daemon",
-        "description": "Keep RAM background tasks awake between visible pulses.",
-        "effects": { "ramMultiplier": 1.6 }
-      },
-      {
-        "id": "core_resolver",
-        "name": "core resolver",
-        "description": "Bias the scheduler toward core growth while the program is running.",
-        "effects": { "coreMultiplier": 1.4 }
-      },
-      {
-        "id": "io_broker",
-        "name": "I/O broker",
-        "description": "Let taps and threads share a hotter queue.",
-        "effects": { "tapMultiplier": 1.1, "ramMultiplier": 1.1 }
-      },
-      {
-        "id": "wide_fork",
-        "name": "wide fork",
-        "description": "Borrow a wider execution lane and lend the machine 96 extra cores.",
-        "effects": { "coreFlat": 96 }
-      },
-      {
-        "id": "thread_swarm",
-        "name": "thread swarm",
-        "description": "RAM schedules background tasks in dense overlapping waves.",
-        "effects": { "ramMultiplier": 3 }
-      },
-      {
-        "id": "tap_jit",
-        "name": "tap JIT",
-        "description": "Compile repeated taps into a short-lived hot path.",
-        "effects": { "tapMultiplier": 3 }
-      },
-      {
-        "id": "core_kernel",
-        "name": "core kernel",
-        "description": "Run a kernel that treats core growth as the primary process.",
-        "effects": { "coreMultiplier": 3.5 }
-      },
-      {
-        "id": "scheduler_overdrive",
-        "name": "scheduler overdrive",
-        "description": "Let every visible process steal time from the dark scheduler.",
-        "effects": { "tapMultiplier": 4, "ramMultiplier": 4, "coreMultiplier": 4 }
-      }
-    ]
+    "items": []
   },
   "roguePrograms": {
     "baseCost": "1e16",

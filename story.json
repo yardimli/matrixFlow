@@ -11,12 +11,12 @@
   },
   {
     "id": "first_download",
-    "text": "kung_fu.exe download started. Incoming bytes are being buffered and will convert into source code when the package completes.",
+    "text": "kung_fu.exe download started. Incoming bytes are being buffered into the first runnable program.",
     "condition": { "stat": "firstRamDownloadStarted", "gte": 1 }
   },
   {
     "id": "first_download_complete",
-    "text": "kung_fu.exe complete. The package added 101 source lines to the run and increased the source available for the next EMP.",
+    "text": "kung_fu.exe complete. The Programs channel is open, and the package can slightly improve hash output while it runs.",
     "condition": { "stat": "firstRamDownloadComplete", "gte": 1 }
   },
   {

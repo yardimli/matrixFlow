@@ -1,8 +1,9 @@
 (async function () {
   const { loadJson, D, finiteNumber, formatNumber, disableContextBehavior } = window.MF.utils;
-  const [config, researchData, storyData, backdoorData, helpData] = await Promise.all([
+  const [config, researchData, programDownloadData, storyData, backdoorData, helpData] = await Promise.all([
     loadJson("game-parameters.json"),
     loadJson("research.json"),
+    loadJson("program-downloads.json"),
     loadJson("story.json"),
     loadJson("backdoors.json"),
     loadJson("help.json")
@@ -21,15 +22,16 @@
     menuButtons: Array.from(document.querySelectorAll(".menu-button"))
   };
 
-  const store = window.MF.createStateStore(config);
+  const store = window.MF.createStateStore(config, programDownloadData);
   const state = store.loadState();
-  const economy = window.MF.createEconomy(config, researchData, backdoorData, state);
+  const economy = window.MF.createEconomy(config, researchData, backdoorData, state, programDownloadData);
   const matrix = window.MF.createMatrixEngine(document.getElementById("matrix"), config.matrix);
   const debugMode = new URLSearchParams(window.location.search).get("debug") === "true";
   let devClickMultiplier = 1;
   const pages = window.MF.createPages({
     config,
     state,
+    programDownloadData,
     researchData,
     storyData,
     backdoorData,
@@ -39,10 +41,7 @@
     getShowCalculations: () => showCalculations,
     getDevClickMultiplier: () => devClickMultiplier
   });
-  const FIRST_RAM_DOWNLOAD_BYTES = 1474560;
-  const FIRST_RAM_DOWNLOAD_START_EXECUTIONS = 1440;
   const DOWNLOAD_BYTES_PER_EXECUTION = 4;
-  const FIRST_RAM_DOWNLOAD_REWARD_SOURCE = 101;
   const CRASH_RUNNER_X = 72;
 
   let activePage = config.ui.defaultPage;
@@ -81,7 +80,7 @@
   });
 
   requestAnimationFrame(tick);
-  syncFirstRamDownloadOnLoad();
+  syncProgramDownloadsOnLoad();
   render();
 
   function bindMenu() {
@@ -108,7 +107,7 @@
     if (ramGain > 0) {
       const lifetimeExecutionsBeforeGain = state.lifetime.executions;
       economy.addExecutions(ramGain);
-      processFirstRamDownloadGain(ramGain, lifetimeExecutionsBeforeGain);
+      processProgramDownloadGain(ramGain, lifetimeExecutionsBeforeGain);
     }
 
     updateDerivedProgress(dt);
@@ -170,7 +169,7 @@
     const executionGain = economy.getExecutionsPerTap() * devClickMultiplier;
     const lifetimeExecutionsBeforeGain = state.lifetime.executions;
     economy.addExecutions(executionGain);
-    processFirstRamDownloadGain(executionGain, lifetimeExecutionsBeforeGain);
+    processProgramDownloadGain(executionGain, lifetimeExecutionsBeforeGain);
     maybeStartCrash();
     matrix.pulse();
     refreshMatrixUpgradeState();
@@ -233,62 +232,75 @@
     render();
   }
 
-  function startFirstRamDownloadIfReady() {
-    if (D(state.lifetime.executions).lt(FIRST_RAM_DOWNLOAD_START_EXECUTIONS)) return;
-    startFirstRamDownload();
+  function syncProgramDownloadsOnLoad() {
+    startEligibleProgramDownloads();
+    for (const item of programDownloadData) {
+      const download = getProgramDownload(item.id);
+      if (download.complete) {
+        state.programs.unlocked[item.id] = true;
+        continue;
+      }
+      if (D(download.bytes).gte(item.downloadBytes)) completeProgramDownload(item);
+    }
   }
 
-  function startFirstRamDownload() {
-    const download = state.downloads.firstRam;
-    if (download.started || download.complete || download.rewarded) return;
-    download.started = true;
-    download.bytes = 0;
-    pageDirty = true;
+  function processProgramDownloadGain(executionGain, lifetimeExecutionsBeforeGain) {
+    startEligibleProgramDownloads();
+    for (const item of programDownloadData) {
+      const download = getProgramDownload(item.id);
+      if (!download.started || download.complete) continue;
+      const eligibleExecutions = getDownloadEligibleExecutions(item, executionGain, lifetimeExecutionsBeforeGain);
+      if (eligibleExecutions > 0) advanceProgramDownload(item, eligibleExecutions);
+    }
   }
 
-  function processFirstRamDownloadGain(executionGain, lifetimeExecutionsBeforeGain) {
+  function startEligibleProgramDownloads() {
+    for (const item of programDownloadData) {
+      const download = getProgramDownload(item.id);
+      if (download.started || download.complete) continue;
+      if (!isProgramDownloadRequirementMet(item)) continue;
+      download.started = true;
+      download.bytes = 0;
+      pageDirty = true;
+    }
+  }
+
+  function isProgramDownloadRequirementMet(item) {
+    if (D(state.hashes).lt(item.hashRequirement || 0)) return false;
+    if (item.executionRequirement && D(state.lifetime.executions).lt(item.executionRequirement)) return false;
+    return true;
+  }
+
+  function getDownloadEligibleExecutions(item, executionGain, lifetimeExecutionsBeforeGain) {
+    if (!item.executionRequirement) return executionGain;
     const before = D(lifetimeExecutionsBeforeGain);
     const after = D(state.lifetime.executions);
-    if (!state.downloads.firstRam.started) {
-      if (after.lt(FIRST_RAM_DOWNLOAD_START_EXECUTIONS)) return;
-      startFirstRamDownload();
-    }
-    const eligibleExecutions = before.lt(FIRST_RAM_DOWNLOAD_START_EXECUTIONS)
-      ? after.minus(FIRST_RAM_DOWNLOAD_START_EXECUTIONS).toNumber()
-      : executionGain;
-    if (eligibleExecutions > 0) advanceFirstRamDownload(eligibleExecutions);
+    if (before.gte(item.executionRequirement)) return executionGain;
+    const eligible = after.minus(item.executionRequirement);
+    return eligible.gt(0) ? eligible.toNumber() : 0;
   }
 
-  function syncFirstRamDownloadOnLoad() {
-    let download = state.downloads.firstRam;
-    if (D(state.lifetime.executions).lt(FIRST_RAM_DOWNLOAD_START_EXECUTIONS) && !download.complete && !download.rewarded) {
-      resetFirstRamDownload();
-    }
-    startFirstRamDownloadIfReady();
-    download = state.downloads.firstRam;
-    if (download.bytes >= FIRST_RAM_DOWNLOAD_BYTES || (download.complete && !download.rewarded)) {
-      download.bytes = FIRST_RAM_DOWNLOAD_BYTES;
-      completeFirstRamDownload();
-    }
+  function advanceProgramDownload(item, executions) {
+    const download = getProgramDownload(item.id);
+    const nextBytes = D(download.bytes).plus(D(executions).times(DOWNLOAD_BYTES_PER_EXECUTION));
+    download.bytes = nextBytes.gte(item.downloadBytes) ? String(item.downloadBytes) : nextBytes.toString();
+    if (D(download.bytes).lt(item.downloadBytes)) return;
+    completeProgramDownload(item);
   }
 
-  function advanceFirstRamDownload(executions) {
-    const download = state.downloads.firstRam;
-    if (!download.started || download.complete) return;
-    download.bytes = Math.min(FIRST_RAM_DOWNLOAD_BYTES, finiteNumber(download.bytes + executions * DOWNLOAD_BYTES_PER_EXECUTION));
-    if (download.bytes < FIRST_RAM_DOWNLOAD_BYTES) return;
-    completeFirstRamDownload();
-  }
-
-  function completeFirstRamDownload() {
-    const download = state.downloads.firstRam;
+  function completeProgramDownload(item) {
+    const download = getProgramDownload(item.id);
     if (download.complete) return;
     download.complete = true;
-    if (!download.rewarded) {
-      addSourceCode(FIRST_RAM_DOWNLOAD_REWARD_SOURCE);
-      download.rewarded = true;
-    }
+    download.bytes = String(item.downloadBytes);
+    state.programs.unlocked[item.id] = true;
     pageDirty = true;
+  }
+
+  function getProgramDownload(id) {
+    state.downloads.programs ||= {};
+    state.downloads.programs[id] ||= { started: false, complete: false, bytes: 0 };
+    return state.downloads.programs[id];
   }
 
   function addSourceCode(lines) {
@@ -297,13 +309,15 @@
     state.total.sourceCode = finiteNumber(state.total.sourceCode + lines);
   }
 
-  function resetFirstRamDownload() {
-    state.downloads.firstRam = {
-      started: false,
-      complete: false,
-      bytes: 0,
-      rewarded: false
-    };
+  function resetProgramDownloads() {
+    state.downloads.programs = {};
+    for (const item of programDownloadData) {
+      state.downloads.programs[item.id] = {
+        started: false,
+        complete: false,
+        bytes: 0
+      };
+    }
   }
 
   function resetCrashes() {
@@ -423,19 +437,10 @@
     if (D(state.hashes).lt(cost)) return;
     state.hashes = D(state.hashes).minus(cost).toString();
     state.research[item.id] = true;
-    unlockProgramFromResearch(item);
     state.lifetime.researchBought += 1;
     state.total.researchBought += 1;
     pageDirty = true;
     render();
-  }
-
-  function unlockProgramFromResearch(item) {
-    const programId = item.effects?.unlockProgram;
-    if (!programId) return;
-    const program = (config.programs?.items || []).find((entry) => entry.id === programId);
-    if (!program) return;
-    state.programs.unlocked[program.id] = true;
   }
 
   function toggleProgram(id) {
@@ -521,7 +526,7 @@
       levels: {},
       slotUpgrades: 0
     };
-    resetFirstRamDownload();
+    resetProgramDownloads();
     resetCrashes();
     state.lifetime = store.freshStats();
     state.cpuMultiplier = economy.getCpuMultiplier();
@@ -880,23 +885,35 @@
   }
 
   function updateDownloadBits() {
-    const download = state.downloads.firstRam;
+    const item = programDownloadData.find((program) => program.id === "kung_fu");
+    document.querySelectorAll("[data-download-label-id]").forEach((label) => {
+      const program = programDownloadData.find((entry) => entry.id === label.dataset.downloadLabelId);
+      if (!program) return;
+      label.textContent = getProgramDownloadLabel(program);
+    });
+    if (!item) return;
+    const download = getProgramDownload(item.id);
     if (!download.started || download.complete) return;
-    const progress = getFirstRamDownloadProgress();
-    const label = document.getElementById("download-label");
+    const progress = getProgramDownloadProgress(item);
     const bar = document.getElementById("download-bar-fill");
     const percent = document.getElementById("download-percent");
-    if (label) label.textContent = getFirstRamDownloadLabel();
     if (bar) bar.style.width = `${progress}%`;
     if (percent) percent.textContent = `${Math.floor(progress)}%`;
   }
 
-  function getFirstRamDownloadProgress() {
-    return Math.max(0, Math.min(100, (state.downloads.firstRam.bytes / FIRST_RAM_DOWNLOAD_BYTES) * 100));
+  function getProgramDownloadProgress(item) {
+    const download = getProgramDownload(item.id);
+    return Math.max(0, Math.min(100, D(download.bytes).div(item.downloadBytes).times(100).toNumber()));
   }
 
-  function getFirstRamDownloadLabel() {
-    return "kung_fu.exe";
+  function getProgramDownloadLabel(item) {
+    const download = getProgramDownload(item.id);
+    if (shouldShowDownloadBytes()) return `${formatDownloadAmount(download.bytes || 0)} downloaded`;
+    return item.name;
+  }
+
+  function shouldShowDownloadBytes() {
+    return Math.floor((state.lifetime?.time || 0) / 2) % 2 === 1;
   }
 
   function formatRamProfile(level) {
@@ -938,9 +955,11 @@
   }
 
   function formatDownloadAmount(bytes) {
-    if (bytes < 100000) return `${Math.floor(bytes)} bytes`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+    const amount = D(bytes);
+    if (amount.lt(100000)) return `${Math.floor(amount.toNumber())} bytes`;
+    if (amount.lt(1024 * 1024)) return `${amount.div(1024).toNumber().toFixed(1)} KB`;
+    if (amount.lt("1e12")) return `${amount.div(1024 * 1024).toNumber().toFixed(2)} MB`;
+    return `${formatNumber(amount, { scientificAt: 0, scientificDecimals: 2 })} bytes`;
   }
 
   function showButtonPressFeedback(event) {

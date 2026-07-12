@@ -1,7 +1,20 @@
 (function () {
   const { finiteNumber, finiteDecimalString } = window.MF.utils;
 
-  function createStateStore(config) {
+  function createStateStore(config, programDownloadData = []) {
+    const legacyProgramResearch = {
+      program_core_fork: "core_fork",
+      program_bot_swarm: "bot_swarm",
+      program_thread_daemon: "thread_daemon",
+      program_core_resolver: "core_resolver",
+      program_io_broker: "io_broker",
+      program_wide_fork: "wide_fork",
+      program_thread_swarm: "thread_swarm",
+      program_tap_jit: "tap_jit",
+      program_core_kernel: "core_kernel",
+      program_scheduler_overdrive: "scheduler_overdrive"
+    };
+
     function freshStats() {
       return {
         time: 0,
@@ -23,7 +36,8 @@
           complete: false,
           bytes: 0,
           rewarded: false
-        }
+        },
+        programs: {}
       };
     }
 
@@ -95,6 +109,21 @@
       next.roguePrograms.levels ||= {};
       next.downloads = { ...freshDownloads(), ...(next.downloads || {}) };
       next.downloads.firstRam = { ...freshDownloads().firstRam, ...(next.downloads.firstRam || {}) };
+      next.downloads.programs ||= {};
+      for (const item of programDownloadData) {
+        const existing = next.downloads.programs[item.id] || {};
+        const fromLegacyFirst = item.id === "kung_fu" && next.downloads.firstRam.complete;
+        const fromLegacyResearch = Object.entries(legacyProgramResearch).some(([researchId, programId]) => programId === item.id && next.research[researchId]);
+        next.downloads.programs[item.id] = {
+          started: Boolean(existing.started || existing.complete || fromLegacyFirst || fromLegacyResearch),
+          complete: Boolean(existing.complete || fromLegacyFirst || fromLegacyResearch),
+          bytes: finiteNumber(existing.bytes)
+        };
+        if (next.downloads.programs[item.id].complete) {
+          next.downloads.programs[item.id].bytes = finiteNumber(item.downloadBytes);
+          next.programs.unlocked[item.id] = true;
+        }
+      }
       next.crashes = { ...freshCrashes(), ...(next.crashes || {}) };
       next.lifetime = { ...freshStats(), ...(next.lifetime || {}) };
       next.total = { ...freshStats(), ...(next.total || {}) };
@@ -125,7 +154,7 @@
       next.programs.slots = Math.min(5, next.programs.slots);
       if (!Array.isArray(next.programs.active)) next.programs.active = next.programs.active ? [next.programs.active] : [];
       next.programs.active = next.programs.active
-        .filter((id, index, active) => next.programs.unlocked[id] && active.indexOf(id) === index)
+        .filter((id, index, active) => next.programs.unlocked[id] && programDownloadData.some((program) => program.id === id) && active.indexOf(id) === index)
         .slice(0, next.programs.slots);
       for (const id of Object.keys(next.roguePrograms.levels)) {
         next.roguePrograms.levels[id] = Math.max(0, Math.floor(finiteNumber(next.roguePrograms.levels[id])));

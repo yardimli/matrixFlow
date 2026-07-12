@@ -1,7 +1,7 @@
 (function () {
   const { D, decimalToNumber, finiteNumber, finiteDecimalString } = window.MF.utils;
 
-  function createEconomy(config, researchData, backdoorData, state) {
+  function createEconomy(config, researchData, backdoorData, state, programDownloadData = []) {
     function isResearchBought(id) {
       return Boolean(state.research[id]);
     }
@@ -35,7 +35,7 @@
       const activeIds = Array.isArray(state.programs?.active) ? state.programs.active : state.programs?.active ? [state.programs.active] : [];
       return activeIds
         .filter((id) => state.programs?.unlocked?.[id])
-        .map((id) => (config.programs?.items || []).find((program) => program.id === id))
+        .map((id) => programDownloadData.find((program) => program.id === id))
         .filter(Boolean);
     }
 
@@ -268,9 +268,10 @@
 
     function addExecutions(amount) {
       const gain = finiteNumber(amount);
-      state.hashes = D(finiteDecimalString(state.hashes)).plus(gain).toString();
-      state.lifetime.hashes = D(finiteDecimalString(state.lifetime.hashes)).plus(gain).toString();
-      state.total.hashes = D(finiteDecimalString(state.total.hashes)).plus(gain).toString();
+      const hashGain = finiteNumber(gain * (1 + effectSum("hashMultiplier")));
+      state.hashes = D(finiteDecimalString(state.hashes)).plus(hashGain).toString();
+      state.lifetime.hashes = D(finiteDecimalString(state.lifetime.hashes)).plus(hashGain).toString();
+      state.total.hashes = D(finiteDecimalString(state.total.hashes)).plus(hashGain).toString();
       state.executions = D(finiteDecimalString(state.executions)).plus(gain).toString();
       state.lifetime.executions = D(finiteDecimalString(state.lifetime.executions)).plus(gain).toString();
       state.total.executions = D(finiteDecimalString(state.total.executions)).plus(gain).toString();
@@ -299,8 +300,8 @@
         time: state.lifetime.time,
         researchBought: state.lifetime.researchBought,
         totalResearchBought: state.total.researchBought,
-        firstRamDownloadStarted: state.downloads?.firstRam?.started ? 1 : 0,
-        firstRamDownloadComplete: state.downloads?.firstRam?.complete ? 1 : 0,
+        firstRamDownloadStarted: state.downloads?.programs?.kung_fu?.started ? 1 : 0,
+        firstRamDownloadComplete: state.downloads?.programs?.kung_fu?.complete ? 1 : 0,
         reboots: state.reboots
       };
       return finiteNumber(map[stat] || 0);

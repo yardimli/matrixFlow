@@ -1,0 +1,91 @@
+[
+  {
+    "id": "kung_fu",
+    "name": "kung_fu.exe",
+    "description": "A small training package that teaches hash output to land a little cleaner.",
+    "hashRequirement": 0,
+    "executionRequirement": 1440,
+    "downloadBytes": 1474560,
+    "effects": { "hashMultiplier": 0.05 }
+  },
+  {
+    "id": "core_fork",
+    "name": "core fork",
+    "description": "Spin up a temporary execution lane and lend the machine 32 extra cores.",
+    "hashRequirement": 10000000,
+    "downloadBytes": 10000000,
+    "effects": { "coreFlat": 32 }
+  },
+  {
+    "id": "bot_swarm",
+    "name": "bot swarm",
+    "description": "Start 256 temporary bots that raise every production calculation while the program is running.",
+    "hashRequirement": 25000000,
+    "downloadBytes": 25000000,
+    "effects": { "botFlat": 256 }
+  },
+  {
+    "id": "thread_daemon",
+    "name": "thread daemon",
+    "description": "Keep RAM background tasks awake between visible pulses.",
+    "hashRequirement": "1e11",
+    "downloadBytes": "1e11",
+    "effects": { "ramMultiplier": 1.6 }
+  },
+  {
+    "id": "core_resolver",
+    "name": "core resolver",
+    "description": "Bias the scheduler toward core growth while the program is running.",
+    "hashRequirement": "1e13",
+    "downloadBytes": "1e13",
+    "effects": { "coreMultiplier": 1.4 }
+  },
+  {
+    "id": "io_broker",
+    "name": "I/O broker",
+    "description": "Let taps and threads share a hotter queue.",
+    "hashRequirement": "1e15",
+    "downloadBytes": "1e15",
+    "effects": { "tapMultiplier": 1.1, "ramMultiplier": 1.1 }
+  },
+  {
+    "id": "wide_fork",
+    "name": "wide fork",
+    "description": "Borrow a wider execution lane and lend the machine 96 extra cores.",
+    "hashRequirement": "1e17",
+    "downloadBytes": "1e17",
+    "effects": { "coreFlat": 96 }
+  },
+  {
+    "id": "thread_swarm",
+    "name": "thread swarm",
+    "description": "RAM schedules background tasks in dense overlapping waves.",
+    "hashRequirement": "1e19",
+    "downloadBytes": "1e19",
+    "effects": { "ramMultiplier": 3 }
+  },
+  {
+    "id": "tap_jit",
+    "name": "tap JIT",
+    "description": "Compile repeated taps into a short-lived hot path.",
+    "hashRequirement": "1e21",
+    "downloadBytes": "1e21",
+    "effects": { "tapMultiplier": 3 }
+  },
+  {
+    "id": "core_kernel",
+    "name": "core kernel",
+    "description": "Run a kernel that treats core growth as the primary process.",
+    "hashRequirement": "1e23",
+    "downloadBytes": "1e23",
+    "effects": { "coreMultiplier": 3.5 }
+  },
+  {
+    "id": "scheduler_overdrive",
+    "name": "scheduler overdrive",
+    "description": "Let every visible process steal time from the dark scheduler.",
+    "hashRequirement": "1e25",
+    "downloadBytes": "1e25",
+    "effects": { "tapMultiplier": 4, "ramMultiplier": 4, "coreMultiplier": 4 }
+  }
+]
